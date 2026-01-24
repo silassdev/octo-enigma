@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiBriefcase, FiPhone, FiCheckCircle, FiLoader, FiMessageCircle } from "react-icons/fi";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 
@@ -25,12 +25,27 @@ export default function OnboardingPage() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push("/login");
+            if (!auth.currentUser) {
+                router.push("/login");
+            }
         }
         if (user?.displayName) {
             setFormData(prev => ({ ...prev, name: user.displayName || "" }));
         }
     }, [user, authLoading, router]);
+
+    const validateStep = (currentStep: number) => {
+        if (currentStep === 1) {
+            return formData.name.trim() !== "" && formData.phoneNumber.trim() !== "";
+        }
+        if (currentStep === 2) {
+            return formData.jobTitle.trim() !== "" && formData.company.trim() !== "";
+        }
+        if (currentStep === 3) {
+            return formData.bio.trim() !== "";
+        }
+        return false;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -238,16 +253,22 @@ export default function OnboardingPage() {
                             {step < 3 ? (
                                 <button
                                     type="button"
-                                    onClick={() => setStep(step + 1)}
-                                    className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20"
+                                    onClick={() => {
+                                        if (validateStep(step)) {
+                                            setStep(step + 1);
+                                        } else {
+                                            toast.error("Please fill in all fields to continue.");
+                                        }
+                                    }}
+                                    className={`flex-1 px-6 py-4 rounded-2xl font-bold transition-all shadow-lg ${validateStep(step) ? 'bg-brand-primary text-white hover:opacity-90 shadow-brand-primary/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                 >
                                     Continue
                                 </button>
                             ) : (
                                 <button
                                     type="submit"
-                                    disabled={loading}
-                                    className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    disabled={loading || !validateStep(3)}
+                                    className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? <FiLoader className="animate-spin" /> : "Complete Setup"}
                                 </button>

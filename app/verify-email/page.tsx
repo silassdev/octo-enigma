@@ -17,7 +17,10 @@ export default function VerifyEmailPage() {
 
     useEffect(() => {
         if (!loading && !user) {
-            router.push("/login");
+            // Double check auth state directly to avoid race conditions with context updates
+            if (!auth.currentUser) {
+                router.push("/login");
+            }
         }
         if (!loading && user?.emailVerified) {
             router.push("/onboarding");

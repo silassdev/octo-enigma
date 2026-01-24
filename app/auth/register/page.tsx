@@ -40,9 +40,9 @@ export default function RegisterPage() {
 
             toast.success("Account created successfully!");
             router.push("/onboarding");
+            // Don't clear loading
         } catch (error: any) {
             toast.error(error.message);
-        } finally {
             setLoading(null);
         }
     };
@@ -68,8 +68,9 @@ export default function RegisterPage() {
 
             toast.success("Account created! Please verify your email.");
             router.push("/verify-email");
+            setLoading(null); // Clear loading for verify email redirect as it might not be a hard nav
         } catch (error: any) {
-            console.error(error);
+            setLoading(null);
             if (error.code === 'auth/email-already-in-use') {
                 toast.error("This email is already registered. Please sign in instead.");
             } else if (error.code === 'auth/weak-password') {
@@ -77,8 +78,6 @@ export default function RegisterPage() {
             } else {
                 toast.error("Failed to create account. Please try again.");
             }
-        } finally {
-            setLoading(null);
         }
     };
 
@@ -91,14 +90,6 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="sm:mx-auto sm:w-full sm:max-w-md text-center"
             >
-                <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-brand-primary text-white shadow-xl shadow-brand-primary/20 group-hover:scale-110 transition-transform">
-                        <FiBox className="w-7 h-7" />
-                    </div>
-                    <span className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white">
-                        MicroCRM<span className="text-brand-primary">.</span>
-                    </span>
-                </Link>
                 <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Create your free account</h2>
                 <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
                     Already have an account?{" "}

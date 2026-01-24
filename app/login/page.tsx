@@ -22,11 +22,16 @@ export default function LoginPage() {
     const router = useRouter();
 
     const checkOnboarding = async (uid: string) => {
-        const userDoc = await getDoc(doc(db, "users", uid));
-        if (userDoc.exists() && userDoc.data().onboardingCompleted) {
-            router.push("/dashboard");
-        } else {
-            router.push("/onboarding");
+        try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists() && userDoc.data().onboardingCompleted) {
+                router.replace("/dashboard");
+            } else {
+                router.replace("/onboarding");
+            }
+        } catch (e) {
+            console.error(e);
+            setLoading(null);
         }
     };
 
@@ -39,7 +44,6 @@ export default function LoginPage() {
             await checkOnboarding(result.user.uid);
         } catch (error: any) {
             toast.error(error.message);
-        } finally {
             setLoading(null);
         }
     };
@@ -52,12 +56,14 @@ export default function LoginPage() {
             if (!result.user.emailVerified) {
                 toast.error("Please verify your email first.");
                 router.push("/verify-email");
+                setLoading(null);
                 return;
             }
             toast.success("Welcome back!");
+            // Do NOT set loading to null here, wait for redirect
             await checkOnboarding(result.user.uid);
         } catch (error: any) {
-            console.error(error);
+            setLoading(null);
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                 toast.error("Invalid email or password. Please try again.");
             } else if (error.code === 'auth/too-many-requests') {
@@ -65,8 +71,6 @@ export default function LoginPage() {
             } else {
                 toast.error("Failed to sign in. Please try again.");
             }
-        } finally {
-            setLoading(null);
         }
     };
 
@@ -79,14 +83,6 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="sm:mx-auto sm:w-full sm:max-w-md text-center"
             >
-                <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-brand-primary text-white shadow-xl shadow-brand-primary/20 group-hover:scale-110 transition-transform">
-                        <FiBox className="w-7 h-7" />
-                    </div>
-                    <span className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white">
-                        MicroCRM<span className="text-brand-primary">.</span>
-                    </span>
-                </Link>
                 <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Sign in to your account</h2>
                 <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
                     Or{" "}
