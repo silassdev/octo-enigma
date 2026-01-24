@@ -1,14 +1,16 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/app/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiBriefcase, FiPhone, FiCheckCircle, FiLoader, FiMessageCircle } from "react-icons/fi";
+import { db } from "@/lib/firebase";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 export default function OnboardingPage() {
-    const { data: session, status, update } = useSession();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1);
@@ -22,41 +24,38 @@ export default function OnboardingPage() {
     });
 
     useEffect(() => {
-        if (status === "unauthenticated") {
+        if (!authLoading && !user) {
             router.push("/login");
         }
-        if (session?.user?.name) {
-            setFormData(prev => ({ ...prev, name: session.user.name || "" }));
+        if (user?.displayName) {
+            setFormData(prev => ({ ...prev, name: user.displayName || "" }));
         }
-    }, [status, session, router]);
+    }, [user, authLoading, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
         setLoading(true);
 
         try {
-            const res = await fetch("/api/user/onboarding", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
+            await setDoc(doc(db, "users", user.uid), {
+                ...formData,
+                email: user.email,
+                onboardingCompleted: true,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
 
-            if (res.ok) {
-                toast.success("Welcome aboard! Your profile is ready.");
-                await update(); // Update session to reflect changes
-                router.push("/dashboard");
-            } else {
-                const data = await res.json();
-                toast.error(data.error || "Something went wrong");
-            }
-        } catch (error) {
-            toast.error("An error occurred. Please try again.");
+            toast.success("Welcome aboard! Your profile is ready.");
+            router.push("/dashboard");
+        } catch (error: any) {
+            console.error("Onboarding error:", error);
+            toast.error(error.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
     };
 
-    if (status === "loading") {
+    if (authLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <FiLoader className="w-8 h-8 animate-spin text-brand-primary" />
@@ -97,7 +96,7 @@ export default function OnboardingPage() {
                         </motion.div>
 
                         <h1 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">
-                            Welcome to <span className="text-brand-primary">MicroCRM</span>, {session?.user?.name?.split(' ')[0]}!
+                            Welcome to <span className="text-brand-primary">MicroCRM</span>, {user?.displayName?.split(' ')[0] || "there"}!
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400">
                             Tell us a bit about yourself to personalize your experience.
@@ -143,7 +142,7 @@ export default function OnboardingPage() {
                                                 type="text"
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all"
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all text-slate-900 dark:text-white"
                                                 placeholder="John Doe"
                                                 required
                                             />
@@ -157,7 +156,7 @@ export default function OnboardingPage() {
                                                 type="tel"
                                                 value={formData.phoneNumber}
                                                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all"
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all text-slate-900 dark:text-white"
                                                 placeholder="+1 (555) 000-0000"
                                             />
                                         </div>
@@ -181,7 +180,7 @@ export default function OnboardingPage() {
                                                 type="text"
                                                 value={formData.jobTitle}
                                                 onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all"
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all text-slate-900 dark:text-white"
                                                 placeholder="Freelance Designer"
                                             />
                                         </div>
@@ -194,7 +193,7 @@ export default function OnboardingPage() {
                                                 type="text"
                                                 value={formData.company}
                                                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all"
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all text-slate-900 dark:text-white"
                                                 placeholder="Company Name"
                                             />
                                         </div>
@@ -217,7 +216,7 @@ export default function OnboardingPage() {
                                             <textarea
                                                 value={formData.bio}
                                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all min-h-[120px] resize-none"
+                                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-primary outline-none transition-all min-h-[120px] resize-none text-slate-900 dark:text-white"
                                                 placeholder="Tell us a bit about what you do..."
                                             />
                                         </div>
@@ -231,7 +230,7 @@ export default function OnboardingPage() {
                                 <button
                                     type="button"
                                     onClick={() => setStep(step - 1)}
-                                    className="flex-1 px-6 py-4 rounded-2xl bg-gray-100 dark:bg-gray-800 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                                    className="flex-1 px-6 py-4 rounded-2xl bg-gray-100 dark:bg-gray-800 font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all text-slate-900 dark:text-white"
                                 >
                                     Back
                                 </button>
