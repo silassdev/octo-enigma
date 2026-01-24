@@ -12,7 +12,7 @@ export default function LoginPage() {
 
     const handleSignIn = async (provider: "google" | "github") => {
         setLoading(provider);
-        await signIn(provider, { callbackUrl: "/" });
+        await signIn(provider, { callbackUrl: "/onboarding" });
     };
 
     return (

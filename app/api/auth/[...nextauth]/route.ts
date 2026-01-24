@@ -24,9 +24,13 @@ export const authOptions: NextAuthOptions = {
         signIn: "/login",
     },
     callbacks: {
-        async session({ session, token }) {
-            if (session.user && token.sub) {
-                (session.user as any).id = token.sub;
+        async session({ session, token, user }: any) {
+            if (session.user) {
+                session.user.id = token.sub || user.id;
+                // Add onboarding status to session if needed
+                // Note: The adapter (MongoDB) will provide the user object if strategy is 'database'
+                // Since strategy is 'jwt', we might need to fetch it or rely on the token
+                // However, let's keep it simple for now and just pass what's in the token/user
             }
             return session;
         },

@@ -5,17 +5,11 @@ const UserSchema = new Schema({
   email: { type: String, unique: true },
   image: String,
   emailVerified: Date,
+  onboardingCompleted: { type: Boolean, default: false },
+  jobTitle: String,
+  company: String,
+  phoneNumber: String,
+  bio: String,
 }, { timestamps: true });
 
 export const User = models.User || model('User', UserSchema);
-
-// models/BattleResult.ts
-const BattleResultSchema = new Schema({
-  winnerUsername: { type: String, required: true },
-  loserUsername: { type: String, required: true },
-  winnerScore: { type: Number, required: true },
-  loserScore: { type: Number, required: true },
-  playedBy: { type: Schema.Types.ObjectId, ref: 'User' }, 
-}, { timestamps: true });
-
-export const BattleResult = models.BattleResult || model('BattleResult', BattleResultSchema);
