@@ -62,7 +62,7 @@ export default function TermsPage() {
                             1. Acceptance of Terms
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            By accessing or using GitBattle, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service. GitBattle is a platform for comparing GitHub profiles and should be used for entertainment and educational purposes only.
+                            By accessing or using MicroCRM, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service. MicroCRM is a platform for managing freelancer projects, invoices, and contacts.
                         </p>
                     </section>
 
@@ -77,17 +77,17 @@ export default function TermsPage() {
                         <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
                             <li>Maintaining the security of your authentication tokens</li>
                             <li>All activities that occur under your account</li>
-                            <li>Ensuring your use of the service complies with GitHub's and Google's respective policies</li>
+                            <li>Ensuring your use of the service complies with Google's policies</li>
                         </ul>
                     </section>
 
                     <section className="glass rounded-3xl p-8 md:p-10 border border-white/20 backdrop-blur-xl shadow-xl">
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
-                            <FiGithub className="text-gray-900 dark:text-white" />
-                            3. Data Usage & GitHub API
+                            <FiShield className="text-blue-500" />
+                            3. Data Usage
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            GitBattle fetches public data from the GitHub API. We do not store your private code, repositories, or personal information beyond what is necessary to maintain the leaderboard (username, avatar, and calculated battle score). Your use of GitBattle is also subject to GitHub's Acceptable Use Policies.
+                            MicroCRM stores the information you provide during onboarding and any data you enter into the system (clients, invoices, etc.). We do not share your private business data with third parties. Your use of MicroCRM is subject to our privacy policy.
                         </p>
                     </section>
 
@@ -100,17 +100,16 @@ export default function TermsPage() {
                             Users agree not to:
                         </p>
                         <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
-                            <li>Attempt to manipulate battle scores through artificial means</li>
-                            <li>Abuse or overload our infrastructure or the GitHub API</li>
+                            <li>Attempt to exploit or manipulate our infrastructure</li>
                             <li>Use the service for any illegal or unauthorized purpose</li>
-                            <li>Harass or target other developers based on their battle rankings</li>
+                            <li>Harass or target other users</li>
                         </ul>
                     </section>
 
                     <section className="glass rounded-3xl p-8 md:p-10 border border-white/20 backdrop-blur-xl shadow-xl">
                         <h2 className="text-2xl font-bold mb-4">5. Limitation of Liability</h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            GitBattle provides weighted profile comparisons "as is." We are not liable for any discrepancies in GitHub data or any decisions made based on the rankings provided by this platform. Battle scores are calculated using a proprietary formula and do not represent a definitive measure of developer skill.
+                            MicroCRM provides management tools "as is." We are not liable for any discrepancies in data or any business decisions made based on the information provided by this platform.
                         </p>
                     </section>
                 </motion.div>

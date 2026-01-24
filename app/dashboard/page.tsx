@@ -1,17 +1,11 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { FiUsers, FiBriefcase, FiFileText, FiDollarSign, FiPlus } from "react-icons/fi";
+import { FiPlus } from "react-icons/fi";
 import Link from "next/link";
 import { clsx } from "clsx";
+import { getDashboardStats } from "@/lib/actions";
+import StatsGrid from "@/app/components/StatsGrid";
 
-export default function DashboardPage() {
-    const stats = [
-        { label: "Active Clients", value: "12", trend: "+2 this month", trendUp: true, icon: FiUsers, color: "bg-blue-600" },
-        { label: "Open Projects", value: "4", trend: "On track", trendUp: true, icon: FiBriefcase, color: "bg-purple-600" },
-        { label: "Pending Invoices", value: "$4,250", trend: "3 overdue", trendUp: false, icon: FiFileText, color: "bg-orange-600" },
-        { label: "Monthly Revenue", value: "$8,900", trend: "+15% vs last month", trendUp: true, icon: FiDollarSign, color: "bg-emerald-600" },
-    ];
+export default async function DashboardPage() {
+    const stats = await getDashboardStats();
 
     return (
         <div className="space-y-8">
@@ -30,17 +24,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                    >
-                    </motion.div>
-                ))}
-            </div>
+            <StatsGrid stats={stats} />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-6">

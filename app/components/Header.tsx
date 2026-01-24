@@ -2,15 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from './AuthProvider';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiBox, FiUser, FiLogOut } from 'react-icons/fi';
 import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -65,14 +64,14 @@ export default function Header() {
               <ThemeToggle />
               {user ? (
                 <div className="flex items-center gap-3">
-                  {user.photoURL && (
-                    <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full border-2 border-brand-primary" />
+                  {user.image && (
+                    <img src={user.image} alt="" className="w-8 h-8 rounded-full border-2 border-brand-primary" />
                   )}
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                    {user.displayName || user.email?.split('@')[0] || 'User'}
+                    {user.name || user.email?.split('@')[0] || 'User'}
                   </span>
                   <button
-                    onClick={() => signOut(auth)}
+                    onClick={() => nextAuthSignOut()}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-xs font-bold uppercase tracking-wider"
                   >
                     <FiLogOut className="w-4 h-4" />
