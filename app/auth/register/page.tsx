@@ -6,7 +6,8 @@ import {
     signInWithPopup,
     GoogleAuthProvider,
     updateProfile,
-    sendEmailVerification
+    sendEmailVerification,
+    signOut
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -66,9 +67,13 @@ export default function RegisterPage() {
                 onboardingCompleted: false
             });
 
-            toast.success("Account created! Please verify your email.");
+            // Sign out immediately so the unverified user cannot access the app.
+            // They must verify their email first, then log in.
+            await signOut(auth);
+
+            toast.success("Account created! Please check your email to verify your account.");
             router.push("/verify-email");
-            setLoading(null); // Clear loading for verify email redirect as it might not be a hard nav
+            setLoading(null);
         } catch (error: any) {
             setLoading(null);
             if (error.code === 'auth/email-already-in-use') {

@@ -4,7 +4,8 @@ import { useState } from "react";
 import {
     signInWithEmailAndPassword,
     signInWithPopup,
-    GoogleAuthProvider
+    GoogleAuthProvider,
+    signOut
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -53,8 +54,15 @@ export default function LoginPage() {
         setLoading("email");
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
-            if (!result.user.emailVerified) {
-                toast.error("Please verify your email first.");
+
+            // Reload to get the latest emailVerified status from Firebase
+            await result.user.reload();
+            const freshUser = auth.currentUser;
+
+            if (!freshUser?.emailVerified) {
+                // Sign out so the unverified session doesn't persist
+                await signOut(auth);
+                toast.error("Please verify your email first. Check your inbox for the verification link.");
                 router.push("/verify-email");
                 setLoading(null);
                 return;
