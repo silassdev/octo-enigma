@@ -34,7 +34,7 @@ export async function POST(req: Request) {
             from: emailUser,
             to: contactEmail,
             replyTo: email,
-            subject: `[GitBattle Contact] ${subject}`,
+            subject: `[Micro-CRM Contact] ${subject}`,
             html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h2 style="color: #2563eb;">New Contact Form Submission</h2>
