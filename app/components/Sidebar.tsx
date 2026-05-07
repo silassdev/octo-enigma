@@ -18,15 +18,9 @@ export default function Sidebar() {
     const pathname = usePathname();
 
     return (
-<<<<<<< HEAD
-        <aside className="w-64 border-r border-white/5 dark:border-white/5 bg-white dark:bg-[#121212] h-screen sticky top-0 flex flex-col pt-24 transition-colors duration-500">
-            <nav className="flex-1 px-4 space-y-1">
-                {menuItems.map((item) => {
-=======
         <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col z-40 pt-20">
             <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
                 {navItems.map((item) => {
->>>>>>> b4304e4df5b8e22515e24302527ff8fb7a0c39d6
                     const isActive = pathname === item.href;
                     return (
                         <Link
