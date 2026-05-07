@@ -1,168 +1,203 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { motion } from "framer-motion";
-import { FiGithub } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
+import {
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider
+} from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { FiMail, FiLock, FiArrowRight, FiBox } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState<string | null>(null);
+    const router = useRouter();
 
-    const handleSignIn = async (provider: "google" | "github") => {
-        setLoading(provider);
-        await signIn(provider, { callbackUrl: "/" });
+    const checkOnboarding = async (uid: string) => {
+        try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists() && userDoc.data().onboardingCompleted) {
+                router.replace("/dashboard");
+            } else {
+                router.replace("/onboarding");
+            }
+        } catch (e) {
+            console.error(e);
+            setLoading(null);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setLoading("google");
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            toast.success("Signed in with Google!");
+            await checkOnboarding(result.user.uid);
+        } catch (error: any) {
+            toast.error(error.message);
+            setLoading(null);
+        }
+    };
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading("email");
+        try {
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            if (!result.user.emailVerified) {
+                toast.error("Please verify your email first.");
+                router.push("/verify-email");
+                setLoading(null);
+                return;
+            }
+            toast.success("Welcome back!");
+            // Do NOT set loading to null here, wait for redirect
+            await checkOnboarding(result.user.uid);
+        } catch (error: any) {
+            setLoading(null);
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                toast.error("Invalid email or password. Please try again.");
+            } else if (error.code === 'auth/too-many-requests') {
+                toast.error("Too many failed attempts. Please try again later.");
+            } else {
+                toast.error("Failed to sign in. Please try again.");
+            }
+        }
     };
 
     return (
-        <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
-            {/* Animated Background */}
-            <div className="absolute inset-0 -z-10">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"
-                    style={{ animationDuration: '4s' }} />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-emerald-500/20 via-cyan-500/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"
-                    style={{ animationDuration: '6s', animationDelay: '1s' }} />
-            </div>
+        <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-primary via-purple-500 to-pink-500" />
 
-            <div className="container py-20">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-md mx-auto"
-                >
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full glass border border-white/20 backdrop-blur-sm"
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="sm:mx-auto sm:w-full sm:max-w-md text-center"
+            >
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Sign in to your account</h2>
+                <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                    Or{" "}
+                    <Link href="/auth/register" className="text-brand-primary hover:text-brand-dark transition-colors">
+                        create a new account for free
+                    </Link>
+                </p>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mt-10 sm:mx-auto sm:w-full sm:max-w-md"
+            >
+                <div className="bg-white dark:bg-slate-900 py-10 px-8 border border-gray-100 dark:border-gray-800 shadow-2xl rounded-3xl">
+                    <form className="space-y-6" onSubmit={handleEmailLogin}>
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <FiMail className="text-gray-400" />
+                                </div>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="block w-full pl-11 pr-4 py-3 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all font-bold text-sm"
+                                    placeholder="name@company.com"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <FiLock className="text-gray-400" />
+                                </div>
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="block w-full pl-11 pr-4 py-3 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all font-bold text-sm"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <input
+                                    id="remember-me"
+                                    name="remember-me"
+                                    type="checkbox"
+                                    className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300 rounded"
+                                />
+                                <label htmlFor="remember-me" className="ml-2 block text-xs font-bold text-gray-500 dark:text-gray-400">
+                                    Remember me
+                                </label>
+                            </div>
+
+                            <div className="text-xs font-bold">
+                                <a href="#" className="text-brand-primary hover:text-brand-dark transition-colors">
+                                    Forgot password?
+                                </a>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading === "email"}
+                            className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-2xl shadow-lg shadow-brand-primary/25 text-sm font-black text-white bg-brand-primary hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-all uppercase tracking-widest disabled:opacity-50"
                         >
-                            <span className="text-xs font-bold uppercase tracking-wider">Secure Login</span>
-                        </motion.div>
+                            {loading === "email" ? "Signing in..." : <><FiArrowRight /> Sign In</>}
+                        </button>
+                    </form>
 
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="text-4xl md:text-5xl font-black mb-4 tracking-tight"
-                        >
-                            Welcome to{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400">
-                                GitBattle
-                            </span>
-                        </motion.h1>
+                    <div className="mt-8">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-100 dark:border-gray-800" />
+                            </div>
+                            <div className="relative flex justify-center text-xs font-black uppercase tracking-widest">
+                                <span className="px-4 bg-white dark:bg-slate-900 text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="text-gray-600 dark:text-gray-300"
-                        >
-                            Sign in to compare profiles and climb the leaderboard
-                        </motion.p>
-                    </div>
-
-                    {/* Sign-in Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="glass rounded-3xl p-8 border border-white/20 backdrop-blur-xl shadow-2xl"
-                    >
-                        <div className="space-y-4">
-                            {/* Google Sign-in */}
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleSignIn("google")}
-                                disabled={loading !== null}
-                                className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all font-semibold shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        <div className="mt-6">
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={loading === "google"}
+                                className="w-full flex justify-center items-center gap-3 py-4 px-4 border border-gray-100 dark:border-gray-800 rounded-2xl bg-white dark:bg-slate-800 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm disabled:opacity-50"
                             >
                                 {loading === "google" ? (
                                     <motion.div
                                         animate={{ rotate: 360 }}
                                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                        className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full"
+                                        className="w-5 h-5 border-2 border-gray-300 border-t-brand-primary rounded-full"
                                     />
                                 ) : (
-                                    <FcGoogle className="text-2xl" />
+                                    <FcGoogle size={20} />
                                 )}
-                                <span className="text-gray-700 dark:text-gray-200">
-                                    {loading === "google" ? "Signing in..." : "Continue with Google"}
-                                </span>
-                            </motion.button>
-
-                            {/* Divider */}
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-4 bg-white/50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 font-medium">
-                                        OR
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* GitHub Sign-in */}
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleSignIn("github")}
-                                disabled={loading !== null}
-                                className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gray-900 dark:bg-gray-800 border-2 border-gray-800 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400 transition-all font-semibold shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading === "github" ? (
-                                    <motion.div
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                        className="w-5 h-5 border-2 border-gray-600 border-t-white rounded-full"
-                                    />
-                                ) : (
-                                    <FiGithub className="text-2xl text-white" />
-                                )}
-                                <span className="text-white">
-                                    {loading === "github" ? "Signing in..." : "Continue with GitHub"}
-                                </span>
-                            </motion.button>
+                                <span>Google</span>
+                            </button>
                         </div>
-
-                        {/* Info Text */}
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400"
-                        >
-                            By signing in, you agree to our{" "}
-                            <Link href="/terms" className="text-brand-primary hover:underline">
-                                Terms of Service
-                            </Link>{" "}
-                            and{" "}
-                            <Link href="/privacy" className="text-brand-primary hover:underline">
-                                Privacy Policy
-                            </Link>
-                        </motion.p>
-                    </motion.div>
-
-                    {/* Back to Home */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="mt-6 text-center"
-                    >
-                        <Link
-                            href="/"
-                            className="text-sm text-gray-600 dark:text-gray-400 hover:text-brand-primary transition-colors"
-                        >
-                            ← Back to Home
-                        </Link>
-                    </motion.div>
-                </motion.div>
-            </div>
-        </main>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
     );
 }

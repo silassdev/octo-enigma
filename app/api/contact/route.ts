@@ -34,7 +34,11 @@ export async function POST(req: Request) {
             from: emailUser,
             to: contactEmail,
             replyTo: email,
+<<<<<<< HEAD
             subject: `[Micro-CRM Contact] ${subject}`,
+=======
+            subject: `[MicroCRM Contact] ${subject}`,
+>>>>>>> b4304e4df5b8e22515e24302527ff8fb7a0c39d6
             html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h2 style="color: #2563eb;">New Contact Form Submission</h2>

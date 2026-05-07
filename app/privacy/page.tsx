@@ -45,7 +45,7 @@ export default function PrivacyPage() {
                         </span>
                     </h1>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
-                        How we protect and handle your professional developer data
+                        How we protect and handle your professional freelancer data
                     </p>
                 </motion.div>
 
@@ -62,13 +62,13 @@ export default function PrivacyPage() {
                             1. Information We Collect
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                            We only collect data that is publicly available on GitHub and the minimal information provided during OAuth sign-in:
+                            We only collect data that you provide during registration, onboarding, and while using the service:
                         </p>
                         <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
-                            <li>Public GitHub username and profile display name</li>
-                            <li>Public avatar URL</li>
-                            <li>Public statistics (Followers, Repositories, Stars)</li>
-                            <li>Email address (for authentication purposes only)</li>
+                            <li>Name and profile display name</li>
+                            <li>Email address (for authentication and support)</li>
+                            <li>Professional details (Job title, Company, Bio)</li>
+                            <li>Business data (Clients, invoices, expenses)</li>
                         </ul>
                     </section>
 
@@ -78,12 +78,12 @@ export default function PrivacyPage() {
                             2. How We Use It
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                            Your data is used specifically for the GitBattle ecosystem:
+                            Your data is used specifically for the MicroCRM ecosystem:
                         </p>
                         <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
-                            <li>Generating profile comparison visualizations</li>
-                            <li>Calculating ranked battle scores</li>
-                            <li>Displaying your ranking on the global leaderboard</li>
+                            <li>Personalizing your dashboard</li>
+                            <li>Managing your projects and clients</li>
+                            <li>Generating invoices and tracking expenses</li>
                             <li>Maintaining your authenticated session</li>
                         </ul>
                     </section>
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
                             3. Data Sharing
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            We do not sell, trade, or lease your personal information to third parties. Your public profile data (username, avatar, and battle score) is visible to other users on the global leaderboard. We use standard third-party authentication providers (GitHub, Google) to handle secure sign-ins.
+                            We do not sell, trade, or lease your personal information to third parties. We use standard third-party authentication providers (Google) to handle secure sign-ins.
                         </p>
                     </section>
 
@@ -104,12 +104,12 @@ export default function PrivacyPage() {
                             4. Your Control
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                            You have full control over your session and presence on GitBattle:
+                            You have full control over your session and data on MicroCRM:
                         </p>
                         <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
                             <li>You can sign out at any time to clear your local session</li>
-                            <li>You can revoke GitBattle's access via your GitHub or Google account settings</li>
-                            <li>To request deletion of your leaderboard record, please contact us</li>
+                            <li>You can revoke MicroCRM's access via your Google account settings</li>
+                            <li>To request deletion of your account and data, please contact us</li>
                         </ul>
                     </section>
 
