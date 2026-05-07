@@ -24,11 +24,7 @@
   --muted-foreground: #64748b;
   --accent: #f8fafc;
   --accent-foreground: #0f172a;
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> b4304e4df5b8e22515e24302527ff8fb7a0c39d6
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(0, 0, 0, 0.05);
 }
@@ -36,17 +32,11 @@
 .dark {
   --background: #121212;
   --foreground: #e2e8f0;
-<<<<<<< HEAD
-  --brand-primary: #bb86fc; /* Material Purple */
-  --brand-secondary: #03dac6;
-  --card: #1e1e1e; /* Material Surface */
-=======
   --brand-primary: #bb86fc;
   /* Material Purple */
   --brand-secondary: #03dac6;
   --card: #1e1e1e;
   /* Material Surface */
->>>>>>> b4304e4df5b8e22515e24302527ff8fb7a0c39d6
   --card-foreground: #e2e8f0;
   --border: rgba(255, 255, 255, 0.1);
   --input: #2c2c2c;
@@ -55,11 +45,7 @@
   --muted-foreground: #a0a0a0;
   --accent: #333333;
   --accent-foreground: #ffffff;
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> b4304e4df5b8e22515e24302527ff8fb7a0c39d6
   --glass-bg: rgba(18, 18, 18, 0.8);
   --glass-border: rgba(255, 255, 255, 0.08);
 }

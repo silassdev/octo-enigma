@@ -29,10 +29,7 @@ export default function Header() {
     { label: 'Contact', href: '/contact' },
   ];
 
-  const loggedInNav = [
-    // Intentionally minimal for logged in users as requested
-    // "Leaving the site name and logo at left as constant"
-  ];
+  const loggedInNav: { label: string; href: string }[] = [];
 
   if (loading) return null; // Or a skeleton
 
@@ -62,7 +59,7 @@ export default function Header() {
 
           {/* Middle: nav (desktop) */}
           <nav className="hidden md:flex items-center gap-10">
-            {navItems.map((item) => (
+            {(user ? loggedInNav : publicNav).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -80,42 +77,47 @@ export default function Header() {
 
               {user ? (
                 <div className="flex items-center gap-3">
-                  {user.photoURL && (
-                    <img
-                      src={user.photoURL}
-                      alt=""
-                      className="w-8 h-8 rounded-full border-2 border-brand-primary"
-                    />
-                  )}
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
                     {user.displayName || user.email?.split('@')[0] || 'User'}
                   </span>
-                  <span className="text-[10px] text-gray-500 font-medium">Free Plan</span>
+                  <button
+                    onClick={async () => {
+                      await signOut(auth);
+                      toast.success("See you later!");
+                      window.location.href = "/";
+                    }}
+                    className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all"
+                    title="Sign Out"
+                  >
+                    <FiLogOut className="w-4 h-4" />
+                  </button>
+                  <Link href="/dashboard">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full ring-2 ring-brand-primary/20" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-purple-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-brand-primary/20">
+                        {user.email?.[0].toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
                 </div>
-
-                <button
-                  onClick={async () => {
-                    await signOut(auth);
-                    toast.success("See you later!");
-                    window.location.href = "/";
-                  }}
-                  className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all"
-                  title="Sign Out"
-                >
-                  <FiLogOut className="w-4 h-4" />
-                </button>
-
-                <Link href="/dashboard">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full ring-2 ring-brand-primary/20" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary to-purple-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-brand-primary/20">
-                      {user.email?.[0].toUpperCase()}
-                    </div>
-                  )}
-                </Link>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/login"
+                    className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-brand-primary transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary text-white text-sm font-black hover:bg-brand-dark transition-all shadow-lg shadow-brand-primary/25"
+                  >
+                    Get Started <FiChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {/* Mobile menu toggle */}
             <button
@@ -142,7 +144,7 @@ export default function Header() {
               <div className="pt-3 pb-4 space-y-3">
                 <div className="px-4">
                   <nav className="flex flex-col gap-2">
-                    {navItems.map((item) => (
+                    {(user ? loggedInNav : publicNav).map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
