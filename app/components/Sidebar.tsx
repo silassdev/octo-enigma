@@ -1,9 +1,11 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiUsers, FiBriefcase, FiFileText, FiDollarSign, FiPieChart, FiSettings } from "react-icons/fi";
+import { FiHome, FiUsers, FiBriefcase, FiFileText, FiDollarSign, FiPieChart, FiSettings, FiMenu, FiX } from "react-icons/fi";
 import { clsx } from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
     { label: "Overview", href: "/dashboard", icon: <FiHome /> },
@@ -17,9 +19,10 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const [isOpen, setIsOpen] = useState(false);
 
-    return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col z-40 pt-20">
+    const NavContent = () => (
+        <>
             <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -27,14 +30,15 @@ export default function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={() => setIsOpen(false)}
                             className={clsx(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm",
+                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm group",
                                 isActive
                                     ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
                                     : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                             )}
                         >
-                            <span className={clsx("text-lg", isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600")}>
+                            <span className={clsx("text-lg", isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600 transition-colors")}>
                                 {item.icon}
                             </span>
                             {item.label}
@@ -46,6 +50,7 @@ export default function Sidebar() {
             <div className="p-4 border-t border-gray-100 dark:border-gray-800">
                 <Link
                     href="/dashboard/settings"
+                    onClick={() => setIsOpen(false)}
                     className={clsx(
                         "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm",
                         pathname === "/dashboard/settings"
@@ -57,6 +62,49 @@ export default function Sidebar() {
                     Settings
                 </Link>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Mobile Toggle Button */}
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-brand-primary text-white shadow-2xl shadow-brand-primary/40 md:hidden flex items-center justify-center"
+            >
+                {isOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
+            </button>
+
+            {/* Desktop Sidebar */}
+            <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col z-40 pt-20">
+                <NavContent />
+            </aside>
+
+            {/* Mobile Drawer */}
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsOpen(false)}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] md:hidden"
+                        />
+                        <motion.aside 
+                            initial={{ x: -280 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: -280 }}
+                            className="fixed left-0 top-0 h-screen w-72 bg-white dark:bg-slate-950 z-50 flex flex-col md:hidden pt-8"
+                        >
+                            <div className="px-6 mb-8">
+                                <h2 className="text-2xl font-black text-brand-primary">MicroCRM<span className="text-slate-900 dark:text-white">.</span></h2>
+                            </div>
+                            <NavContent />
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
     );
 }
