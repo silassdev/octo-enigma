@@ -15,20 +15,23 @@ export default function VerifyEmailPage() {
     const [sending, setSending] = useState(false);
     const [verifying, setVerifying] = useState(false);
 
+    // We are no longer enforcing that the user MUST be signed in on this page.
+    // They are signed out immediately after registration to block access.
     useEffect(() => {
-        if (!loading && !user) {
-            // Double check auth state directly to avoid race conditions with context updates
-            if (!auth.currentUser) {
-                router.push("/login");
-            }
-        }
         if (!loading && user?.emailVerified) {
             router.push("/onboarding");
         }
     }, [user, loading, router]);
 
     const handleResend = async () => {
-        if (!user) return;
+        // If not signed in (normal flow after registration), they can't resend from here
+        // Usually, a distinct "resend email" flow requiring email/password would be needed if signed out,
+        // but for now we'll just prompt them to log in to resend.
+        if (!user) {
+            toast.error("Please sign in first to resend the verification email.");
+            router.push("/login");
+            return;
+        }
         setSending(true);
         try {
             await sendEmailVerification(user);
@@ -45,7 +48,12 @@ export default function VerifyEmailPage() {
     };
 
     const handleCheckVerification = async () => {
-        if (!auth.currentUser) return;
+        if (!auth.currentUser) {
+            // They are signed out. Prompt them to log in.
+            toast.success("Please sign in to continue and verify your status.");
+            router.push("/login");
+            return;
+        }
         setVerifying(true);
         try {
             await auth.currentUser.reload();
@@ -68,7 +76,7 @@ export default function VerifyEmailPage() {
         router.push("/login");
     };
 
-    if (loading || !user) return null;
+    if (loading) return null;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
@@ -83,8 +91,8 @@ export default function VerifyEmailPage() {
 
                 <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Verify your email</h1>
                 <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-                    We sent a verification link to <span className="font-bold text-slate-800 dark:text-slate-200">{user.email}</span>. <br />
-                    Please check your inbox (and spam) to continue.
+                    We sent a verification link to your email. <br />
+                    Please check your inbox (and spam). Once verified, log in to continue.
                 </p>
 
                 <div className="space-y-4">
@@ -107,10 +115,10 @@ export default function VerifyEmailPage() {
                     </button>
 
                     <button
-                        onClick={handleLogout}
-                        className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-bold flex items-center justify-center gap-2 w-full pt-4"
+                        onClick={() => router.push("/login")}
+                        className="text-sm text-brand-primary hover:text-brand-dark font-bold flex items-center justify-center gap-2 w-full pt-4"
                     >
-                        <FiLogOut className="w-3 h-3" /> Sign Out
+                        <FiLogOut className="w-3 h-3" /> Go to Login
                     </button>
                 </div>
             </motion.div>

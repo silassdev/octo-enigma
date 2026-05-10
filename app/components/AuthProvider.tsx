@@ -7,11 +7,13 @@ import { auth } from '@/lib/firebase';
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    emailVerified: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
+    emailVerified: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -27,8 +29,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return () => unsubscribe();
     }, []);
 
+    const emailVerified = user?.emailVerified ?? false;
+
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user, loading, emailVerified }}>
             {!loading && children}
         </AuthContext.Provider>
     );
