@@ -4,6 +4,7 @@ export interface User {
     email: string;
     stripeCustomerId?: string;
     plan: 'free' | 'pro' | 'lifetime';
+    role: 'admin' | 'user';
     subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'grace_period';
     onboardingCompleted?: boolean;
     createdAt: any;

@@ -6,6 +6,7 @@ import { db, auth } from "@/lib/firebase";
 import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { FiPlus, FiTrash2, FiSave, FiArrowLeft, FiLoader } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { InvoiceSchema } from "@/lib/schemas";
 
 function NewInvoiceForm() {
     const searchParams = useSearchParams();
