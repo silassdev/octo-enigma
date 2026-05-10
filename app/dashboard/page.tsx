@@ -1,11 +1,12 @@
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiAlertCircle, FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { clsx } from "clsx";
-import { getDashboardStats } from "@/lib/actions";
+import { getDashboardStats, getNeedsAttentionItems } from "@/lib/actions";
 import StatsGrid from "@/app/components/StatsGrid";
 
 export default async function DashboardPage() {
     const stats = await getDashboardStats();
+    const attentionItems = await getNeedsAttentionItems();
 
     return (
         <div className="space-y-8">
@@ -25,6 +26,38 @@ export default async function DashboardPage() {
             </div>
 
             <StatsGrid stats={stats} />
+
+            {attentionItems.length > 0 && (
+                <div className="bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/20 p-8 rounded-[2rem]">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-black text-orange-900 dark:text-orange-400 flex items-center gap-2">
+                            <FiAlertCircle className="w-6 h-6" /> Needs Attention
+                        </h2>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-orange-600/50 dark:text-orange-400/50 bg-orange-100 dark:bg-orange-900/30 px-3 py-1 rounded-full">
+                            {attentionItems.length} Items
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {attentionItems.map((item) => (
+                            <Link key={item.id} href={item.link} className="group relative flex flex-col p-6 bg-white dark:bg-slate-900 rounded-[1.5rem] border border-transparent shadow-sm hover:shadow-xl hover:shadow-orange-500/5 hover:border-orange-200 dark:hover:border-orange-900/50 transition-all duration-500">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={clsx(
+                                        "w-10 h-10 rounded-xl flex items-center justify-center text-lg",
+                                        item.severity === 'high' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'
+                                    )}>
+                                        {item.type === 'invoice' ? '$' : 'P'}
+                                    </div>
+                                    <div className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                                        <FiArrowRight className="w-4 h-4 text-gray-400" />
+                                    </div>
+                                </div>
+                                <h4 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-primary transition-colors">{item.title}</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{item.reason}</p>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-6">

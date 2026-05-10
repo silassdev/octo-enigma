@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "@/app/components/Sidebar";
+import CommandPalette from "@/app/components/CommandPalette";
 import { useAuth } from "@/app/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -31,6 +32,7 @@ export default function DashboardLayout({
 
     return (
         <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+            <CommandPalette />
             <Sidebar />
             <main className="flex-1 p-8 md:ml-64">
                 <div className="max-w-7xl mx-auto pt-20">

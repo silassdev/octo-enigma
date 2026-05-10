@@ -11,6 +11,7 @@ const navItems = [
     { label: "Projects", href: "/dashboard/projects", icon: <FiBriefcase /> },
     { label: "Invoices", href: "/dashboard/invoices", icon: <FiFileText /> },
     { label: "Expenses", href: "/dashboard/expenses", icon: <FiDollarSign /> },
+    { label: "Tax Prediction", href: "/dashboard/reports/tax", icon: <FiPieChart /> },
     { label: "Reports", href: "/dashboard/reports", icon: <FiPieChart /> },
 ];
 
