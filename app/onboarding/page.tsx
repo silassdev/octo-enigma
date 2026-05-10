@@ -21,6 +21,7 @@ export default function OnboardingPage() {
         company: "",
         phoneNumber: "",
         bio: "",
+        plan: "free" as "free" | "pro" | "lifetime",
     });
 
     useEffect(() => {
@@ -44,6 +45,9 @@ export default function OnboardingPage() {
         if (currentStep === 3) {
             return formData.bio.trim() !== "";
         }
+        if (currentStep === 4) {
+            return !!formData.plan;
+        }
         return false;
     };
 
@@ -61,6 +65,25 @@ export default function OnboardingPage() {
             }, { merge: true });
 
             toast.success("Welcome aboard! Your profile is ready.");
+            
+            if (formData.plan !== 'free') {
+                // Redirect to Stripe Checkout
+                const res = await fetch("/api/stripe/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        plan: formData.plan,
+                        email: user.email,
+                        userId: user.uid
+                    }),
+                });
+                const { url } = await res.json();
+                if (url) {
+                    window.location.href = url;
+                    return;
+                }
+            }
+
             router.push("/dashboard");
         } catch (error: any) {
             console.error("Onboarding error:", error);
@@ -81,7 +104,8 @@ export default function OnboardingPage() {
     const steps = [
         { id: 1, title: "Basics", icon: <FiUser /> },
         { id: 2, title: "Professional", icon: <FiBriefcase /> },
-        { id: 3, title: "Finalize", icon: <FiCheckCircle /> },
+        { id: 3, title: "About", icon: <FiMessageCircle /> },
+        { id: 4, title: "Plan", icon: <FiCheckCircle /> },
     ];
 
     return (
@@ -238,6 +262,47 @@ export default function OnboardingPage() {
                                     </div>
                                 </motion.div>
                             )}
+                            {step === 4 && (
+                                <motion.div
+                                    key="step4"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="grid gap-4">
+                                        {[
+                                            { id: 'free', title: 'Free', price: '$0', desc: '10 active invoices, 20 contacts, 20 expenses. Watermark included.' },
+                                            { id: 'pro', title: 'Pro', price: '$12/yr', desc: 'Unlimited records, no watermark, support, custom templates.', recommended: true },
+                                            { id: 'lifetime', title: 'Lifetime', price: '$50', desc: 'For first 100 users. All Pro features forever.' },
+                                        ].map((plan) => (
+                                            <div
+                                                key={plan.id}
+                                                onClick={() => setFormData({ ...formData, plan: plan.id as any })}
+                                                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${formData.plan === plan.id
+                                                    ? 'border-brand-primary bg-brand-primary/5 shadow-lg shadow-brand-primary/10'
+                                                    : 'border-transparent bg-gray-50 dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-800'
+                                                    }`}
+                                            >
+                                                {plan.recommended && (
+                                                    <span className="absolute -top-3 right-6 px-3 py-1 bg-brand-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg">
+                                                        Recommended
+                                                    </span>
+                                                )}
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h3 className="font-bold text-lg">{plan.title}</h3>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 max-w-[200px]">{plan.desc}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-xl font-black text-brand-primary">{plan.price}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
 
                         <div className="flex gap-4 pt-4">
@@ -250,7 +315,7 @@ export default function OnboardingPage() {
                                     Back
                                 </button>
                             )}
-                            {step < 3 ? (
+                            {step < 4 ? (
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -267,7 +332,7 @@ export default function OnboardingPage() {
                             ) : (
                                 <button
                                     type="submit"
-                                    disabled={loading || !validateStep(3)}
+                                    disabled={loading || !validateStep(4)}
                                     className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? <FiLoader className="animate-spin" /> : "Complete Setup"}

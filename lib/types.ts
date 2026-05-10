@@ -3,7 +3,9 @@ export interface User {
     displayName: string;
     email: string;
     stripeCustomerId?: string;
-    plan: 'free' | 'pro';
+    plan: 'free' | 'pro' | 'lifetime';
+    subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'grace_period';
+    onboardingCompleted?: boolean;
     createdAt: any;
 }
 
