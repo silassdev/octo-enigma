@@ -8,17 +8,21 @@ import { getDashboardStats, getNeedsAttentionItems, getRecentProjects, getTasks,
 import StatsGrid from "@/app/components/StatsGrid";
 import { useAuth } from "@/app/components/AuthProvider";
 import ProjectModal from "@/app/components/ProjectModal";
+import TaskModal from "@/app/components/TaskModal";
+import AdminOverview from "@/app/components/AdminOverview";
 import { Project, Task } from "@/lib/types";
 import { toast } from "react-hot-toast";
 
 export default function DashboardPage() {
     const { user, profile, loading: authLoading } = useAuth();
+    const isAdmin = profile?.role === 'admin';
     const [stats, setStats] = useState<any[]>([]);
     const [attentionItems, setAttentionItems] = useState<any[]>([]);
     const [recentProjects, setRecentProjects] = useState<any[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
     const loadDashboard = async () => {
         if (user) {
@@ -47,22 +51,8 @@ export default function DashboardPage() {
         }
     }, [user, authLoading]);
 
-    const handleAddTask = async () => {
-        const label = window.prompt("What do you need to do?");
-        if (!label) return;
-        
-        try {
-            await saveTask({
-                label,
-                time: "Today",
-                type: 'medium',
-                completed: false
-            });
-            toast.success("Task added!");
-            loadDashboard();
-        } catch (error) {
-            toast.error("Failed to add task");
-        }
+    const handleAddTask = () => {
+        setIsTaskModalOpen(true);
     };
 
     if (authLoading || (loading && !user)) {
@@ -71,6 +61,10 @@ export default function DashboardPage() {
                 <FiLoader className="w-8 h-8 animate-spin text-brand-primary" />
             </div>
         );
+    }
+
+    if (isAdmin) {
+        return <AdminOverview />;
     }
 
     return (
@@ -228,6 +222,12 @@ export default function DashboardPage() {
             <ProjectModal 
                 isOpen={isProjectModalOpen}
                 onClose={() => setIsProjectModalOpen(false)}
+                onSuccess={loadDashboard}
+            />
+
+            <TaskModal 
+                isOpen={isTaskModalOpen}
+                onClose={() => setIsTaskModalOpen(false)}
                 onSuccess={loadDashboard}
             />
         </div>

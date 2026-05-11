@@ -445,3 +445,54 @@ export async function saveTask(taskData: Partial<Task>) {
         throw error;
     }
 }
+
+export async function getAdminStats() {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    try {
+        const [profilesSnap, invoicesSnap, projectsSnap, expensesSnap] = await Promise.all([
+            getDocs(collection(db, "profiles")),
+            getDocs(query(collection(db, "invoices"), where("status", "==", "paid"))),
+            getDocs(collection(db, "projects")),
+            getDocs(collection(db, "expenses"))
+        ]);
+
+        const totalUsers = profilesSnap.size;
+        const totalRevenue = invoicesSnap.docs.reduce((sum, doc) => sum + (doc.data().total || 0), 0);
+        const totalExpenses = expensesSnap.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0);
+        const totalProjects = projectsSnap.size;
+
+        const globalMonthlyData: Record<string, number> = {};
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toLocaleString('default', { month: 'short' });
+            months.push(key);
+            globalMonthlyData[key] = 0;
+        }
+
+        invoicesSnap.docs.forEach(doc => {
+            const data = doc.data();
+            const m = new Date(data.createdAt).toLocaleString('default', { month: 'short' });
+            if (globalMonthlyData[m] !== undefined) globalMonthlyData[m] += (data.total || 0);
+        });
+
+        return {
+            totalUsers,
+            totalRevenue,
+            totalExpenses,
+            totalProjects,
+            monthlyRevenue: months.map(name => ({ name, revenue: globalMonthlyData[name] })),
+            planDistribution: {
+                free: profilesSnap.docs.filter(d => d.data().plan === 'free').length,
+                pro: profilesSnap.docs.filter(d => d.data().plan === 'pro').length,
+                lifetime: profilesSnap.docs.filter(d => d.data().plan === 'lifetime').length,
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching admin stats:", error);
+        return null;
+    }
+}

@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "./AuthProvider";
 import { toast } from "react-hot-toast";
 
-const navItems = [
+const userNavItems = [
     { label: "Overview", href: "/dashboard", icon: <FiHome /> },
     { label: "Contacts", href: "/dashboard/contacts", icon: <FiUsers /> },
     { label: "Projects", href: "/dashboard/projects", icon: <FiBriefcase /> },
@@ -19,10 +19,20 @@ const navItems = [
     { label: "Reports", href: "/dashboard/reports", icon: <FiPieChart /> },
 ];
 
+const adminNavItems = [
+    { label: "System Overview", href: "/dashboard", icon: <FiHome /> },
+    { label: "User Management", href: "/dashboard/admin/users", icon: <FiUsers /> },
+    { label: "Global Revenue", href: "/dashboard/admin/revenue", icon: <FiDollarSign /> },
+    { label: "App Settings", href: "/dashboard/admin/settings", icon: <FiSettings /> },
+];
+
 export default function Sidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const { profile, user } = useAuth();
+
+    const isAdmin = profile?.role === 'admin';
+    const navItems = isAdmin ? adminNavItems : userNavItems;
 
     const handleUpgrade = async () => {
         if (!user) return;
