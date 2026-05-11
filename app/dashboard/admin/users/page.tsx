@@ -39,7 +39,7 @@ export default function AdminUsersPage() {
     }, [user, authLoading]);
 
     const filteredUsers = users.filter(u => {
-        const matchesSearch = u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        const matchesSearch = (u.name || u.displayName || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
                               u.email?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterPlan === "all" || u.plan === filterPlan;
         return matchesSearch && matchesFilter;
@@ -108,12 +108,12 @@ export default function AdminUsersPage() {
                             key={u.id}
                         >
                             <Link 
-                                href={`/dashboard/admin/users/${u.ownerId}`}
+                                href={`/dashboard/admin/users/${u.id}`}
                                 className="group block bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-xl border border-gray-50 dark:border-gray-800 hover:border-brand-primary/20 transition-all duration-500 relative overflow-hidden"
                             >
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-slate-800 flex items-center justify-center text-xl font-black text-brand-primary shadow-inner">
-                                        {u.name?.charAt(0) || u.email?.charAt(0)}
+                                        {(u.name || u.displayName || u.email || "?").charAt(0)}
                                     </div>
                                     <div className={clsx(
                                         "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
@@ -127,7 +127,7 @@ export default function AdminUsersPage() {
                                 
                                 <div>
                                     <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 group-hover:text-brand-primary transition-colors tracking-tight">
-                                        {u.name || "Untitled User"}
+                                        {u.name || u.displayName || "Untitled User"}
                                     </h3>
                                     <p className="text-gray-400 text-xs font-bold truncate mb-6">{u.email}</p>
                                     

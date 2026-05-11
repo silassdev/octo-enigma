@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc, setDoc } from "firebase/firestore";
 import { auth } from "./firebase";
 import { AttentionItem, Contact, Project, Invoice, Expense, Task, Ticket } from "./types";
 
@@ -661,7 +661,7 @@ export async function getAdminRevenueData() {
                 id: doc.id,
                 total: data.total,
                 createdAt: data.createdAt,
-                userName: profilesMap[data.ownerId]?.name || "Unknown User",
+                userName: profilesMap[data.ownerId]?.name || profilesMap[data.ownerId]?.displayName || "Unknown User",
                 userEmail: profilesMap[data.ownerId]?.email || "N/A",
                 plan: profilesMap[data.ownerId]?.plan || "free"
             };
@@ -681,5 +681,49 @@ export async function getAdminRevenueData() {
     } catch (error) {
         console.error("Error fetching admin revenue data:", error);
         return null;
+    }
+}
+
+export async function getSystemSettings() {
+    try {
+        const snap = await getDocs(query(collection(db, "settings")));
+        const doc = snap.docs.find(d => d.id === 'global');
+        
+        const defaultSettings = {
+            appName: "MicroCRM",
+            supportEmail: "support@microcrm.io",
+            maintenanceMode: false,
+            enableRegistration: true,
+            defaultPlan: "free",
+            currency: "USD",
+            socialLinks: {
+                twitter: "",
+                github: "",
+                linkedin: ""
+            }
+        };
+
+        if (!doc) return defaultSettings;
+        return { ...defaultSettings, ...doc.data() };
+    } catch (error) {
+        console.error("Error fetching system settings:", error);
+        return null;
+    }
+}
+
+export async function updateSystemSettings(data: any) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const ref = fsDoc(db, "settings", "global");
+        await setDoc(ref, { 
+            ...data,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        return true;
+    } catch (error: any) {
+        console.error("Error updating system settings:", error);
+        throw error;
     }
 }

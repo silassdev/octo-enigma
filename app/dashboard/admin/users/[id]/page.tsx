@@ -85,11 +85,11 @@ export default function UserDetailPage() {
                     </button>
                     <div className="flex items-center gap-6">
                         <div className="w-20 h-20 rounded-[2rem] bg-slate-900 text-brand-primary flex items-center justify-center text-4xl shadow-2xl">
-                            {profile.name?.charAt(0) || profile.email?.charAt(0)}
+                            {(profile.name || profile.displayName || profile.email || "?").charAt(0)}
                         </div>
                         <div>
                             <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">
-                                {profile.name || "Untitled User"}
+                                {profile.name || profile.displayName || "Untitled User"}
                             </h1>
                             <div className="flex items-center gap-4 text-gray-400 font-bold text-xs uppercase tracking-widest">
                                 <span className="flex items-center gap-1.5"><FiMail /> {profile.email}</span>
