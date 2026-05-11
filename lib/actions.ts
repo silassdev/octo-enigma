@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc, setDoc } from "firebase/firestore";
 import { auth } from "./firebase";
 import { AttentionItem, Contact, Project, Invoice, Expense, Task, Ticket } from "./types";
 
@@ -510,6 +510,15 @@ export async function getAllUsers() {
 
 export async function getUserProfile(uid: string) {
     try {
+        // Direct document fetch is more reliable as the doc name IS the UID
+        const ref = fsDoc(db, "users", uid);
+        const snap = await getDoc(ref);
+        
+        if (snap.exists()) {
+            return { id: snap.id, ...snap.data() } as any;
+        }
+
+        // Fallback search if the ID wasn't the doc ID for some legacy reason
         const res = await getDocs(query(collection(db, "users"), where("ownerId", "==", uid)));
         if (res.empty) return null;
         return { id: res.docs[0].id, ...res.docs[0].data() } as any;
