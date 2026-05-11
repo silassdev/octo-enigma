@@ -68,6 +68,9 @@ export default function OnboardingPage() {
         setLoading(true);
 
         try {
+            console.log("Saving profile for user:", user.uid);
+            console.log("Project ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+            
             await setDoc(doc(db, "users", user.uid), {
                 ...formData,
                 email: user.email,
@@ -75,6 +78,7 @@ export default function OnboardingPage() {
                 updatedAt: new Date().toISOString()
             }, { merge: true });
 
+            console.log("Profile saved successfully!");
             toast.success("Welcome aboard! Your profile is ready.");
             
             if (formData.plan !== 'free') {
