@@ -362,3 +362,86 @@ export async function getReportingData() {
         return null;
     }
 }
+
+export async function getRecentProjects(count: number = 3) {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "projects"),
+            where("ownerId", "==", user.uid),
+            orderBy("updatedAt", "desc"),
+            limit(count)
+        );
+        const snap = await getDocs(q);
+        const projects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+
+        const contactsMap: Record<string, string> = {};
+        const contactIds = Array.from(new Set(projects.map(p => p.contactId).filter(Boolean)));
+        
+        if (contactIds.length > 0) {
+            const cSnap = await getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid)));
+            cSnap.forEach(doc => contactsMap[doc.id] = doc.data().name);
+        }
+
+        return projects.map(p => ({
+            ...p,
+            contactName: p.contactId ? contactsMap[p.contactId] : undefined
+        }));
+    } catch (error) {
+        console.error("Error fetching recent projects:", error);
+        const snap = await getDocs(query(collection(db, "projects"), where("ownerId", "==", user.uid)));
+        const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        return all.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')).slice(0, count);
+    }
+}
+
+export async function getTasks() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "tasks"),
+            where("ownerId", "==", user.uid),
+            where("completed", "==", false),
+            orderBy("createdAt", "asc")
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        const snap = await getDocs(query(collection(db, "tasks"), where("ownerId", "==", user.uid)));
+        return (snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task)))
+            .filter(t => !t.completed)
+            .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    }
+}
+
+export async function saveTask(taskData: Partial<Task>) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const data = {
+            ...taskData,
+            ownerId: user.uid,
+            completed: taskData.completed ?? false,
+            createdAt: taskData.createdAt || new Date().toISOString()
+        };
+
+        if (taskData.id) {
+            const ref = fsDoc(db, "tasks", taskData.id);
+            await updateDoc(ref, data);
+            return taskData.id;
+        } else {
+            const ref = collection(db, "tasks");
+            const res = await addDoc(ref, data);
+            return res.id;
+        }
+    } catch (error) {
+        console.error("Error saving task:", error);
+        throw error;
+    }
+}

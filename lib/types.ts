@@ -73,17 +73,27 @@ export interface InvoiceItem {
 
 export interface Expense {
     id: string;
-    ownerId: string;
-    contactId?: string;
-    projectId?: string;
     amount: number;
-    date: any;
     category: string;
+    date: string;
     notes?: string;
-    receiptUrl?: string;
-    ocrData?: any;
-    createdAt: any;
+    projectId?: string;
+    contactId?: string;
+    ownerId: string;
+    createdAt: string;
+    updatedAt: string;
 }
+
+export interface Task {
+    id: string;
+    label: string;
+    time: string; // "10:30 AM" or "Tomorrow"
+    type: 'high' | 'medium' | 'low';
+    completed: boolean;
+    ownerId: string;
+    createdAt: string;
+}
+
 export interface AttentionItem {
     id: string;
     type: 'invoice' | 'project';

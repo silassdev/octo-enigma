@@ -11,7 +11,9 @@ import {
     FiBriefcase, 
     FiTrendingUp,
     FiCheckCircle,
-    FiExternalLink
+    FiExternalLink,
+    FiActivity,
+    FiClock
 } from "react-icons/fi";
 import { getReportingData } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
