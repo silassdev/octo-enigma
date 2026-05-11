@@ -1,7 +1,7 @@
-import * as dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+// Note: To run this script with .env values, use:
+// node --env-file=.env scripts/debug-firebase.ts
 
 const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
