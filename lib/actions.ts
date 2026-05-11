@@ -789,3 +789,31 @@ export async function getUserActivity(uid: string) {
         return [];
     }
 }
+
+/**
+ * Support Ticket Forensics
+ */
+
+export async function getContactRequests() {
+    if (!db) return [];
+    try {
+        const ref = collection(db, "contact_requests");
+        const q = query(ref, orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Support Fetch Error:", error);
+        return [];
+    }
+}
+
+export async function updateContactRequestStatus(id: string, status: 'open' | 'resolved') {
+    if (!db) return;
+    try {
+        const ref = fsDoc(db, "contact_requests", id);
+        await updateDoc(ref, { status, updatedAt: new Date().toISOString() });
+        return { success: true };
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+}
