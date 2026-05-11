@@ -238,3 +238,127 @@ export async function saveInvoice(invoiceData: Partial<Invoice>) {
         throw error;
     }
 }
+
+export async function getExpenses() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "expenses"),
+            where("ownerId", "==", user.uid)
+        );
+        const snap = await getDocs(q);
+        const expenses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
+
+        // Fetch contacts and projects for mapping
+        const contactsMap: Record<string, string> = {};
+        const projectsMap: Record<string, string> = {};
+        
+        const [contactsSnap, projectsSnap] = await Promise.all([
+            getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid))),
+            getDocs(query(collection(db, "projects"), where("ownerId", "==", user.uid)))
+        ]);
+
+        contactsSnap.forEach(doc => contactsMap[doc.id] = doc.data().name);
+        projectsSnap.forEach(doc => projectsMap[doc.id] = doc.data().title);
+
+        return expenses.map(e => ({
+            ...e,
+            contactName: e.contactId ? contactsMap[e.contactId] : undefined,
+            projectName: e.projectId ? projectsMap[e.projectId] : undefined
+        }));
+    } catch (error) {
+        console.error("Error fetching expenses:", error);
+        return [];
+    }
+}
+
+export async function saveExpense(expenseData: Partial<Expense>) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const data = {
+            ...expenseData,
+            ownerId: user.uid,
+            updatedAt: new Date().toISOString()
+        };
+
+        if (expenseData.id) {
+            const ref = fsDoc(db, "expenses", expenseData.id);
+            await updateDoc(ref, data);
+            return expenseData.id;
+        } else {
+            const ref = collection(db, "expenses");
+            const res = await addDoc(ref, {
+                ...data,
+                createdAt: new Date().toISOString(),
+                date: data.date || new Date().toISOString()
+            });
+            return res.id;
+        }
+    } catch (error) {
+        console.error("Error saving expense:", error);
+        throw error;
+    }
+}
+
+export async function getReportingData() {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    try {
+        const [invoicesSnap, expensesSnap] = await Promise.all([
+            getDocs(query(collection(db, "invoices"), where("ownerId", "==", user.uid))),
+            getDocs(query(collection(db, "expenses"), where("ownerId", "==", user.uid)))
+        ]);
+
+        const invoices = invoicesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice));
+        const expenses = expensesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
+
+        const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+        const totalIncome = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+        const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        const netProfit = totalIncome - totalExpenses;
+
+        // Group by category for charts
+        const expenseCategories: Record<string, number> = {};
+        expenses.forEach(exp => {
+            expenseCategories[exp.category] = (expenseCategories[exp.category] || 0) + exp.amount;
+        });
+
+        // Group by month for chart (last 6 months)
+        const monthlyData: Record<string, { income: number; expenses: number }> = {};
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toLocaleString('default', { month: 'short' });
+            months.push(key);
+            monthlyData[key] = { income: 0, expenses: 0 };
+        }
+
+        paidInvoices.forEach(inv => {
+            const m = new Date(inv.createdAt).toLocaleString('default', { month: 'short' });
+            if (monthlyData[m]) monthlyData[m].income += inv.total;
+        });
+
+        expenses.forEach(exp => {
+            const m = new Date(exp.date).toLocaleString('default', { month: 'short' });
+            if (monthlyData[m]) monthlyData[m].expenses += exp.amount;
+        });
+
+        return {
+            totalIncome,
+            totalExpenses,
+            netProfit,
+            expenseCategories: Object.entries(expenseCategories).map(([name, value]) => ({ name, value })),
+            monthlyData: months.map(name => ({ name, ...monthlyData[name] })),
+            estimatedTax: Math.max(0, netProfit * 0.15) // Placeholder 15% rate
+        };
+    } catch (error) {
+        console.error("Error fetching reporting data:", error);
+        return null;
+    }
+}
