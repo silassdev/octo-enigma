@@ -25,26 +25,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-            if (!user) {
+        const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+            setUser(authUser);
+            if (!authUser) {
                 setProfile(null);
                 setLoading(false);
             }
         });
-
         return () => unsubscribeAuth();
     }, []);
 
     useEffect(() => {
         if (user) {
-            const unsubscribeProfile = onSnapshot(doc(db, "users", user.uid), (doc) => {
-                if (doc.exists()) {
-                    setProfile({ ...doc.data(), id: doc.id });
+            const unsubscribeProfile = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+                if (snapshot.exists()) {
+                    setProfile({ ...snapshot.data(), id: snapshot.id });
                 }
+                setLoading(false);
+            }, (error) => {
+                console.error("Profile Snapshot Error:", error.message, error.code);
                 setLoading(false);
             });
             return () => unsubscribeProfile();
+        } else {
+            // If user is null, make sure loading is false
+            if (!loading) {
+                 setLoading(false);
+            }
         }
     }, [user]);
 
