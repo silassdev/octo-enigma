@@ -23,7 +23,7 @@ export default function ProjectModal({ isOpen, onClose, onSuccess, initialData }
         description: "",
         status: "planning",
         budget: 0,
-        dueDate: "",
+        deadline: "",
     });
 
     useEffect(() => {
@@ -49,7 +49,7 @@ export default function ProjectModal({ isOpen, onClose, onSuccess, initialData }
                 description: "",
                 status: "planning",
                 budget: 0,
-                dueDate: "",
+                deadline: "",
             });
         }
     }, [initialData, isOpen, contacts]);
@@ -151,13 +151,13 @@ export default function ProjectModal({ isOpen, onClose, onSuccess, initialData }
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Due Date</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Deadline Date</label>
                                     <div className="relative">
                                         <FiCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                         <input
                                             type="date"
-                                            value={formData.dueDate}
-                                            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                            value={formData.deadline}
+                                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                                             className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm font-bold cursor-pointer"
                                         />
                                     </div>
