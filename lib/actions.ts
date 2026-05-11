@@ -130,8 +130,7 @@ export async function getProjects() {
     try {
         const q = query(
             collection(db, "projects"),
-            where("ownerId", "==", user.uid),
-            orderBy("createdAt", "desc")
+            where("ownerId", "==", user.uid)
         );
         const snap = await getDocs(q);
         const projects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
