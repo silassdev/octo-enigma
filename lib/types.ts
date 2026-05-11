@@ -83,3 +83,11 @@ export interface Expense {
     ocrData?: any;
     createdAt: any;
 }
+export interface AttentionItem {
+    id: string;
+    type: 'invoice' | 'project';
+    title: string;
+    reason: string;
+    severity: 'high' | 'medium' | 'low';
+    link: string;
+}

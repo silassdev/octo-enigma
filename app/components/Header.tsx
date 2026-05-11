@@ -178,7 +178,7 @@ export default function Header() {
                       </>
                     ) : (
                       <Link
-                        href="/auth/login"
+                        href="/login"
                         onClick={() => setMobileOpen(false)}
                         className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                       >

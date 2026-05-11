@@ -1,6 +1,7 @@
 import { db } from "./firebase";
 import { collection, query, where, getDocs, orderBy, limit, Timestamp } from "firebase/firestore";
 import { auth } from "./firebase";
+import { AttentionItem } from "./types";
 
 export async function getDashboardStats() {
     const user = auth.currentUser;
@@ -28,7 +29,7 @@ export async function getNeedsAttentionItems() {
     const user = auth.currentUser;
     if (!user) return [];
 
-    const items = [];
+    const items: AttentionItem[] = [];
 
     // 1. Overdue Invoices
     const now = new Date();
