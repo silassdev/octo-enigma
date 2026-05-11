@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, query, where, getDocs, getDoc, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { auth } from "./firebase";
 import { AttentionItem, Contact, Project, Invoice, Expense, Task, Ticket } from "./types";
 
