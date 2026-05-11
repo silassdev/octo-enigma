@@ -80,7 +80,7 @@ import SupportGuardModal from "@/app/components/SupportGuardModal";
 // ... (categories and faqs remain the same)
 
 export default function HelpPage() {
-    const { user, loading } = useAuth();
+    const { user, profile, loading } = useAuth();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -96,7 +96,7 @@ export default function HelpPage() {
             return;
         }
 
-        if (user.plan === 'free') {
+        if (profile?.plan === 'free') {
             setGuardMode('upgrade');
             setShowGuardModal(true);
             return;
