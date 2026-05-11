@@ -1,7 +1,7 @@
 import { db } from "./firebase";
-import { collection, query, where, getDocs, orderBy, limit, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc } from "firebase/firestore";
 import { auth } from "./firebase";
-import { AttentionItem } from "./types";
+import { AttentionItem, Contact } from "./types";
 
 export async function getDashboardStats() {
     const user = auth.currentUser;
@@ -75,4 +75,52 @@ export async function getNeedsAttentionItems() {
     });
 
     return items;
+}
+export async function getContacts() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "contacts"),
+            where("ownerId", "==", user.uid),
+            orderBy("name", "asc")
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contact));
+    } catch (error) {
+        console.error("Error fetching contacts:", error);
+        return [];
+    }
+}
+
+export async function saveContact(contactData: Partial<Contact>) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const data = {
+            ...contactData,
+            ownerId: user.uid,
+            updatedAt: new Date().toISOString()
+        };
+
+        if (contactData.id) {
+            const ref = fsDoc(db, "contacts", contactData.id);
+            await updateDoc(ref, data);
+            return contactData.id;
+        } else {
+            const ref = collection(db, "contacts");
+            const res = await addDoc(ref, {
+                ...data,
+                createdAt: new Date().toISOString(),
+                status: data.status || 'lead',
+                tags: data.tags || []
+            });
+            return res.id;
+        }
+    } catch (error) {
+        console.error("Error saving contact:", error);
+        throw error;
+    }
 }
