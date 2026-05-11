@@ -57,32 +57,43 @@ export default function InvoiceDetailsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-20 print:m-0 print:p-0 print:max-w-none relative overflow-hidden">
+        <div id="invoice-root" className="max-w-4xl mx-auto space-y-8 pb-20 print:m-0 print:p-0 print:max-w-none relative scroll-mt-20">
             <style jsx global>{`
                 @media print {
-                    /* Absolute hide for UI/Layout elements */
-                    aside, nav, .no-print, [role="complementary"], .sidebar-container { display: none !important; }
-                    
-                    /* Isolation for the body and main container */
-                    body, html { background: white !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
-                    body * { visibility: hidden !important; }
-                    
-                    .invoice-print-container, .invoice-print-container * { 
-                        visibility: visible !important; 
+                    /* Hide EVERYTHING except our specific invoice container */
+                    aside, .no-print, nav, [role="complementary"], header { 
+                        display: none !important; 
                     }
                     
-                    .invoice-print-container { 
-                        position: absolute !important; 
-                        left: 0 !important; 
-                        top: 0 !important; 
-                        width: 100% !important; 
+                    /* Reset dashboard layout constraints */
+                    main { 
                         margin: 0 !important; 
-                        padding: 0 !important;
-                        visibility: visible !important;
+                        padding: 0 !important; 
+                        position: static !important; 
+                        display: block !important;
+                    }
+                    
+                    .max-w-7xl, .pt-20 { 
+                        padding-top: 0 !important; 
+                        max-width: none !important; 
+                        margin: 0 !important; 
+                    }
+                    
+                    body { 
+                        background: white !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
                     }
 
-                    main { margin: 0 !important; padding: 0 !important; transform: none !important; position: relative !important; }
-                    .max-w-7xl { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+                    .invoice-paper { 
+                        box-shadow: none !important; 
+                        border: none !important; 
+                        margin: 0 !important; 
+                        border-radius: 0 !important; 
+                        width: 100% !important;
+                    }
+                    
+                    .watermark { opacity: 0.05 !important; }
                 }
             `}</style>
 
@@ -107,11 +118,11 @@ export default function InvoiceDetailsPage() {
             </div>
 
             {/* Invoice Paper */}
-            <div className="invoice-print-container invoice-paper bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-gray-50 dark:border-gray-800 overflow-hidden print:rounded-none relative">
+            <div className="invoice-paper bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-gray-50 dark:border-gray-800 overflow-hidden relative min-h-[1000px]">
                 {/* Watermark for Free Tier */}
                 {profile?.plan === 'free' && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] overflow-hidden select-none">
-                        <p className="text-[15rem] font-black uppercase tracking-widest -rotate-45 whitespace-nowrap">
+                    <div className="watermark absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] overflow-hidden select-none z-0">
+                        <p className="text-[12rem] font-black uppercase tracking-widest -rotate-45 whitespace-nowrap">
                             FREE TIER • MICROCRM
                         </p>
                     </div>
@@ -181,16 +192,16 @@ export default function InvoiceDetailsPage() {
                         <div className="w-full max-w-xs space-y-4">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="font-bold text-gray-400 uppercase tracking-widest">Subtotal</span>
-                                <span className="font-black text-slate-900 dark:text-white">${invoice.subtotal.toLocaleString()}</span>
+                                <span className="font-black text-slate-900 dark:text-white">${invoice.subtotal?.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="font-bold text-gray-400 uppercase tracking-widest">Tax (15%)</span>
-                                <span className="font-black text-slate-900 dark:text-white">${invoice.tax.toLocaleString()}</span>
+                                <span className="font-black text-slate-900 dark:text-white">${invoice.tax?.toLocaleString()}</span>
                             </div>
                             <div className="h-px bg-gray-100 dark:bg-gray-800 my-4"></div>
                             <div className="flex justify-between items-center">
                                 <span className="font-black text-slate-900 dark:text-white text-lg uppercase tracking-widest">Total Due</span>
-                                <span className="text-3xl font-black text-brand-primary">${invoice.total.toLocaleString()}</span>
+                                <span className="text-3xl font-black text-brand-primary">${invoice.total?.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -199,7 +210,7 @@ export default function InvoiceDetailsPage() {
                     <div className="pt-20 border-t border-gray-50 dark:border-gray-800">
                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Terms & Conditions</h4>
                         <p className="text-sm text-gray-400 font-bold leading-relaxed max-w-2xl">
-                            Please pay this invoice within {new Date(invoice.dueDate).toLocaleDateString()} to avoid late fees. 
+                            Please pay this invoice within {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'TBD'} to avoid late fees. 
                             If you have any questions, please contact billing@{profile?.email?.split('@')[1] || 'yourbusiness.com'}. Thank you for your business!
                         </p>
                     </div>
