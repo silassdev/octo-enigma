@@ -817,3 +817,15 @@ export async function updateContactRequestStatus(id: string, status: 'open' | 'r
         throw new Error(error.message);
     }
 }
+
+export async function deleteUserProfile(uid: string) {
+    if (!db) return;
+    try {
+        const ref = fsDoc(db, "profiles", uid);
+        await deleteDoc(ref);
+        return { success: true };
+    } catch (error: any) {
+        console.error("User Liquidation Error:", error);
+        throw new Error(error.message);
+    }
+}

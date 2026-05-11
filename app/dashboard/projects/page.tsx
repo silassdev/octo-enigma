@@ -120,7 +120,7 @@ export default function ProjectsPage() {
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Deadline</p>
                                     <p className="font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1 text-sm">
-                                        <FiCalendar className="text-amber-500" /> {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}
+                                        <FiCalendar className="text-amber-500" /> {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'TBD'}
                                     </p>
                                 </div>
                             </div>

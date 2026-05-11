@@ -15,9 +15,12 @@ import {
     FiLayout,
     FiSettings,
     FiSave,
-    FiActivity
+    FiActivity,
+    FiTrash2,
+    FiAlertTriangle,
+    FiX
 } from "react-icons/fi";
-import { getUserProfile, updateUserProfile, getUserActivity } from "@/lib/actions";
+import { getUserProfile, updateUserProfile, getUserActivity, deleteUserProfile } from "@/lib/actions";
 import { useRouter, useParams } from "next/navigation";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +35,8 @@ export default function UserDetailPage() {
     const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [editData, setEditData] = useState<any>({});
     const [showLogs, setShowLogs] = useState(false);
 
@@ -61,6 +66,20 @@ export default function UserDetailPage() {
             toast.error("Failed to update profile");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        const toastId = toast.loading("Executing account liquidation...");
+        try {
+            await deleteUserProfile(uid);
+            toast.success("Account successfully purged", { id: toastId });
+            router.push("/dashboard/admin/users");
+        } catch (error: any) {
+            toast.error(error.message, { id: toastId });
+            setDeleting(false);
+            setShowDeleteModal(false);
         }
     };
 
@@ -118,6 +137,12 @@ export default function UserDetailPage() {
                 
                 <div className="bg-gray-50 dark:bg-slate-900 p-2 rounded-2xl flex gap-3 border border-gray-100 dark:border-gray-800">
                     <button 
+                        onClick={() => setShowDeleteModal(true)}
+                        className="px-6 py-3 rounded-xl bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all flex items-center gap-2"
+                    >
+                        <FiTrash2 /> Purge Account
+                    </button>
+                    <button 
                         onClick={handleUpdate}
                         disabled={saving}
                         className="px-8 py-3 rounded-xl bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-brand-primary/20 hover:bg-brand-dark transition-all flex items-center gap-2"
@@ -127,7 +152,7 @@ export default function UserDetailPage() {
                 </div>
             </div>
 
-            {/* Main Content Grid */}
+            {/* ... (Main Content Grid remains the same) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 {/* Profile Controls */}
                 <div className="lg:col-span-7 space-y-10">
@@ -279,6 +304,56 @@ export default function UserDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Deletion Confirmation Modal */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !deleting && setShowDeleteModal(false)}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[3.5rem] shadow-2xl overflow-hidden border border-white/10"
+                        >
+                            <div className="p-12 text-center">
+                                <div className="w-20 h-20 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-4xl mx-auto mb-8">
+                                    <FiAlertTriangle />
+                                </div>
+                                <h2 className="text-3xl font-black tracking-tighter mb-4 text-slate-900 dark:text-white">Account Liquidation</h2>
+                                <p className="text-gray-500 font-bold mb-10 leading-relaxed">
+                                    You are about to purge <span className="text-slate-900 dark:text-white">{profile.name || profile.email}</span>. This action is destructive and cannot be reversed.
+                                </p>
+                                <div className="flex flex-col gap-4">
+                                    <button
+                                        disabled={deleting}
+                                        onClick={handleDelete}
+                                        className={clsx(
+                                            "w-full py-4 rounded-2xl bg-rose-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center justify-center gap-2",
+                                            deleting && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    >
+                                        {deleting ? <FiLoader className="animate-spin" /> : <FiTrash2 />} Confirm Liquidation
+                                    </button>
+                                    <button
+                                        disabled={deleting}
+                                        onClick={() => setShowDeleteModal(false)}
+                                        className="w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <FiX /> Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
