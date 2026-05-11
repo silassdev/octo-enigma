@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiPlus, FiUser, FiFileText, FiBriefcase, FiX } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiUser, FiFileText, FiBriefcase, FiX, FiDollarSign } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 
 export default function CommandPalette() {

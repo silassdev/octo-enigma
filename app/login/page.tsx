@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     signInWithEmailAndPassword,
     signInWithPopup,
@@ -21,6 +21,16 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState<string | null>(null);
     const router = useRouter();
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user && !loading) {
+                checkOnboarding(user.uid);
+            }
+        });
+        return () => unsubscribe();
+    }, [router, loading]);
 
     const checkOnboarding = async (uid: string) => {
         try {

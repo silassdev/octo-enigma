@@ -17,6 +17,11 @@ export async function GET() {
         let user;
         try {
             user = await adminAuth.getUserByEmail(email);
+            // Update user to ensure password matches seed info
+            user = await adminAuth.updateUser(user.uid, {
+                password,
+                displayName: "System Admin",
+            });
         } catch (e) {
             user = await adminAuth.createUser({
                 email,
@@ -26,16 +31,25 @@ export async function GET() {
         }
 
         // 2. Set Admin Role & Pro Plan in Firestore
-        await adminDb.collection('users').doc(user.uid).set({
-            id: user.uid,
-            displayName: "System Admin",
-            email,
-            plan: 'pro',
-            role: 'admin',
-            subscriptionStatus: 'active',
-            onboardingCompleted: true,
-            createdAt: new Date().toISOString()
-        }, { merge: true });
+        console.log('Setting Firestore document for UID:', user.uid);
+        const userDocRef = adminDb.collection('users').doc(user.uid);
+        
+        try {
+            await userDocRef.set({
+                id: user.uid,
+                displayName: "System Admin",
+                email,
+                plan: 'pro',
+                role: 'admin',
+                subscriptionStatus: 'active',
+                onboardingCompleted: true,
+                createdAt: new Date().toISOString()
+            }, { merge: true });
+            console.log('Firestore set successful');
+        } catch (fsError: any) {
+            console.error('Firestore Set Error:', fsError.message);
+            throw fsError;
+        }
 
         return NextResponse.json({
             success: true,
@@ -43,6 +57,11 @@ export async function GET() {
             credentials: { email, password }
         });
     } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            success: false, 
+            error: error.message,
+            stack: error.stack,
+            env_keys: Object.keys(process.env).filter(k => k.includes('FIREBASE'))
+        }, { status: 500 });
     }
 }

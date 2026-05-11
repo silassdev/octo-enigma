@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     createUserWithEmailAndPassword,
     signInWithPopup,
@@ -10,7 +10,7 @@ import {
     signOut
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -25,11 +25,39 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState<string | null>(null);
     const router = useRouter();
 
+    const checkOnboarding = async (uid: string) => {
+        try {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists() && userDoc.data().onboardingCompleted) {
+                router.replace("/dashboard");
+            } else {
+                router.replace("/onboarding");
+            }
+        } catch (e) {
+            console.error("Onboarding check failed:", e);
+            router.replace("/onboarding");
+        }
+    };
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user && !loading) {
+                checkOnboarding(user.uid);
+            }
+        });
+        return () => unsubscribe();
+    }, [router, loading]);
+
     const handleGoogleRegister = async () => {
         setLoading("google");
         const provider = new GoogleAuthProvider();
+        const toastId = toast.loading("Connecting to Google...");
+        
         try {
             const result = await signInWithPopup(auth, provider);
+            toast.loading("Creating your profile...", { id: toastId });
+            
             // check if user exists in db, if not create
             await setDoc(doc(db, "users", result.user.uid), {
                 uid: result.user.uid,
@@ -39,11 +67,11 @@ export default function RegisterPage() {
                 onboardingCompleted: false
             }, { merge: true });
 
-            toast.success("Account created successfully!");
-            router.push("/onboarding");
-            // Don't clear loading
+            toast.success("Account created successfully!", { id: toastId });
+            await checkOnboarding(result.user.uid);
         } catch (error: any) {
-            toast.error(error.message);
+            console.error("Google Register Error:", error);
+            toast.error(error.message || "Registration failed", { id: toastId });
             setLoading(null);
         }
     };

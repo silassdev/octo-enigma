@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiBriefcase, FiPhone, FiCheckCircle, FiLoader, FiMessageCircle } from "react-icons/fi";
 import { db, auth } from "@/lib/firebase";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 export default function OnboardingPage() {
@@ -30,6 +30,17 @@ export default function OnboardingPage() {
                 router.push("/login");
             }
         }
+        
+        const checkStatus = async () => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().onboardingCompleted) {
+                    router.replace("/dashboard");
+                }
+            }
+        };
+        checkStatus();
+
         if (user?.displayName) {
             setFormData(prev => ({ ...prev, name: user.displayName || "" }));
         }
