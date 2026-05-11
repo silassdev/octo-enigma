@@ -1,10 +1,40 @@
 import { NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const syncAll = searchParams.get("sync") === "all";
+
         if (!adminAuth || !adminDb) {
             return NextResponse.json({ success: false, error: "Firebase Admin not initialized. Check your environment variables." }, { status: 500 });
+        }
+
+        if (syncAll) {
+            const listUsersResult = await adminAuth.listUsers();
+            const syncResults = [];
+            
+            for (const userRecord of listUsersResult.users) {
+                const userRef = adminDb.collection("users").doc(userRecord.uid);
+                const doc = await userRef.get();
+                
+                if (!doc.exists) {
+                    await userRef.set({
+                        id: userRecord.uid,
+                        email: userRecord.email,
+                        displayName: userRecord.displayName || "User",
+                        createdAt: userRecord.metadata.creationTime,
+                        onboardingCompleted: false
+                    });
+                    syncResults.push(userRecord.email);
+                }
+            }
+            
+            return NextResponse.json({ 
+                success: true, 
+                message: `Synced ${syncResults.length} orphan users.`,
+                synced: syncResults 
+            });
         }
 
         if (!process.env.SEED_ADMIN_EMAIL || !process.env.SEED_ADMIN_PASSWORD) {

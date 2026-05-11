@@ -1,12 +1,48 @@
-import { FiPlus, FiAlertCircle, FiArrowRight } from "react-icons/fi";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { FiPlus, FiAlertCircle, FiArrowRight, FiLoader } from "react-icons/fi";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { getDashboardStats, getNeedsAttentionItems } from "@/lib/actions";
 import StatsGrid from "@/app/components/StatsGrid";
+import { useAuth } from "@/app/components/AuthProvider";
 
-export default async function DashboardPage() {
-    const stats = await getDashboardStats();
-    const attentionItems = await getNeedsAttentionItems();
+export default function DashboardPage() {
+    const { user, loading: authLoading } = useAuth();
+    const [stats, setStats] = useState<any[]>([]);
+    const [attentionItems, setAttentionItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadDashboard() {
+            if (user) {
+                try {
+                    const [statsData, attentionData] = await Promise.all([
+                        getDashboardStats(),
+                        getNeedsAttentionItems()
+                    ]);
+                    setStats(statsData);
+                    setAttentionItems(attentionData);
+                } catch (error) {
+                    console.error("Dashboard load error:", error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        }
+        if (!authLoading) {
+            loadDashboard();
+        }
+    }, [user, authLoading]);
+
+    if (authLoading || (loading && !user)) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <FiLoader className="w-8 h-8 animate-spin text-brand-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
