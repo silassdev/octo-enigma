@@ -14,15 +14,19 @@ import {
 import { getAdminTickets, updateTicketStatus } from "@/lib/actions";
 import { Ticket } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/app/components/AuthProvider";
 import { toast } from "react-hot-toast";
 import { clsx } from "clsx";
 
 export default function AdminTicketsPage() {
+    const { user, loading: authLoading } = useAuth();
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState("all");
 
     const fetchTickets = async () => {
+        if (authLoading || !user) return;
+        setLoading(true);
         const data = await getAdminTickets();
         setTickets(data);
         setLoading(false);
@@ -30,7 +34,7 @@ export default function AdminTicketsPage() {
 
     useEffect(() => {
         fetchTickets();
-    }, []);
+    }, [user, authLoading]);
 
     const handleStatusUpdate = async (id: string, status: Ticket['status']) => {
         try {

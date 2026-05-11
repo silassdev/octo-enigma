@@ -391,8 +391,7 @@ export async function getRecentProjects(count: number = 3) {
         }));
     } catch (error) {
         console.error("Error fetching recent projects:", error);
-        const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-        return all.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')).slice(0, count);
+        return [];
     }
 }
 
@@ -451,7 +450,7 @@ export async function getAdminStats() {
 
     try {
         const [profilesSnap, invoicesSnap, projectsSnap, expensesSnap] = await Promise.all([
-            getDocs(collection(db, "profiles")),
+            getDocs(collection(db, "users")),
             getDocs(query(collection(db, "invoices"), where("status", "==", "paid"))),
             getDocs(collection(db, "projects")),
             getDocs(collection(db, "expenses"))
@@ -501,7 +500,7 @@ export async function getAllUsers() {
     if (!user) return [];
 
     try {
-        const snap = await getDocs(collection(db, "profiles"));
+        const snap = await getDocs(collection(db, "users"));
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
     } catch (error) {
         console.error("Error fetching all users:", error);
@@ -511,7 +510,7 @@ export async function getAllUsers() {
 
 export async function getUserProfile(uid: string) {
     try {
-        const res = await getDocs(query(collection(db, "profiles"), where("ownerId", "==", uid)));
+        const res = await getDocs(query(collection(db, "users"), where("ownerId", "==", uid)));
         if (res.empty) return null;
         return { id: res.docs[0].id, ...res.docs[0].data() } as any;
     } catch (error) {
@@ -525,7 +524,7 @@ export async function updateUserProfile(profileId: string, data: any) {
     if (!user) throw new Error("Unauthorized");
 
     try {
-        const ref = fsDoc(db, "profiles", profileId);
+        const ref = fsDoc(db, "users", profileId);
         await updateDoc(ref, { 
             ...data,
             updatedAt: new Date().toISOString()
@@ -606,5 +605,81 @@ export async function updateTicketStatus(ticketId: string, status: Ticket['statu
     } catch (error) {
         console.error("Error updating ticket status:", error);
         throw error;
+    }
+}
+
+export async function getAdminRevenueData() {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    try {
+        const [invoicesSnap, expensesSnap, profilesSnap] = await Promise.all([
+            getDocs(query(collection(db, "invoices"), where("status", "==", "paid"))),
+            getDocs(collection(db, "expenses")),
+            getDocs(collection(db, "users"))
+        ]);
+
+        const profilesMap: Record<string, any> = {};
+        profilesSnap.docs.forEach(doc => {
+            const data = doc.data();
+            profilesMap[data.ownerId] = data;
+        });
+
+        // Totals
+        const totalRevenue = invoicesSnap.docs.reduce((sum, doc) => sum + (doc.data().total || 0), 0);
+        const totalExpenses = expensesSnap.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0);
+
+        // Monthly Breakdown (Last 6 months)
+        const monthlyData: Record<string, { name: string, revenue: number, expenses: number }> = {};
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toLocaleString('default', { month: 'short' });
+            months.push(key);
+            monthlyData[key] = { name: key, revenue: 0, expenses: 0 };
+        }
+
+        invoicesSnap.docs.forEach(doc => {
+            const data = doc.data();
+            const date = new Date(data.createdAt);
+            const m = date.toLocaleString('default', { month: 'short' });
+            if (monthlyData[m]) monthlyData[m].revenue += (data.total || 0);
+        });
+
+        expensesSnap.docs.forEach(doc => {
+            const data = doc.data();
+            const date = new Date(data.createdAt || data.date);
+            const m = date.toLocaleString('default', { month: 'short' });
+            if (monthlyData[m]) monthlyData[m].expenses += (data.amount || 0);
+        });
+
+        // Transactions
+        const transactions = invoicesSnap.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                total: data.total,
+                createdAt: data.createdAt,
+                userName: profilesMap[data.ownerId]?.name || "Unknown User",
+                userEmail: profilesMap[data.ownerId]?.email || "N/A",
+                plan: profilesMap[data.ownerId]?.plan || "free"
+            };
+        }).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20);
+
+        return {
+            totalRevenue,
+            totalExpenses,
+            profit: totalRevenue - totalExpenses,
+            monthlyBreakdown: months.map(m => monthlyData[m]),
+            transactions,
+            planYield: {
+                pro: invoicesSnap.docs.filter(d => profilesMap[d.data().ownerId]?.plan === 'pro').reduce((s, d) => s + (d.data().total || 0), 0),
+                lifetime: invoicesSnap.docs.filter(d => profilesMap[d.data().ownerId]?.plan === 'lifetime').reduce((s, d) => s + (d.data().total || 0), 0),
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching admin revenue data:", error);
+        return null;
     }
 }

@@ -14,10 +14,12 @@ import {
 import { getTickets, saveTicket } from "@/lib/actions";
 import { Ticket } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/app/components/AuthProvider";
 import { toast } from "react-hot-toast";
 import { clsx } from "clsx";
 
 export default function SupportPage() {
+    const { user, loading: authLoading } = useAuth();
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +27,8 @@ export default function SupportPage() {
     const [submitting, setSubmitting] = useState(false);
 
     const fetchTickets = async () => {
+        if (authLoading || !user) return;
+        setLoading(true);
         const data = await getTickets();
         setTickets(data);
         setLoading(false);
@@ -32,7 +36,7 @@ export default function SupportPage() {
 
     useEffect(() => {
         fetchTickets();
-    }, []);
+    }, [user, authLoading]);
 
     const handleCreateTicket = async (e: React.FormEvent) => {
         e.preventDefault();

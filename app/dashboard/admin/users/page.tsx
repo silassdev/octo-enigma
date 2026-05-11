@@ -16,8 +16,10 @@ import { getAllUsers } from "@/lib/actions";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/app/components/AuthProvider";
 
 export default function AdminUsersPage() {
+    const { user, loading: authLoading } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,12 +27,16 @@ export default function AdminUsersPage() {
 
     useEffect(() => {
         const fetchUsers = async () => {
+            if (authLoading) return;
+            if (!user) return;
+            
+            setLoading(true);
             const data = await getAllUsers();
             setUsers(data);
             setLoading(false);
         };
         fetchUsers();
-    }, []);
+    }, [user, authLoading]);
 
     const filteredUsers = users.filter(u => {
         const matchesSearch = u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 

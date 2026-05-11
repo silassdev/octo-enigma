@@ -13,6 +13,7 @@ import {
     FiShield
 } from "react-icons/fi";
 import { getAdminStats } from "@/lib/actions";
+import { useAuth } from "@/app/components/AuthProvider";
 import { 
     BarChart, 
     Bar, 
@@ -27,17 +28,20 @@ import {
 import { clsx } from "clsx";
 
 export default function AdminOverview() {
+    const { user, loading: authLoading } = useAuth();
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchAdminData = async () => {
+            if (authLoading || !user) return;
+            setLoading(true);
             const data = await getAdminStats();
             setStats(data);
             setLoading(false);
         };
         fetchAdminData();
-    }, []);
+    }, [user, authLoading]);
 
     if (loading) {
         return (
