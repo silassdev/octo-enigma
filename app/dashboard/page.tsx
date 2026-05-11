@@ -9,7 +9,7 @@ import StatsGrid from "@/app/components/StatsGrid";
 import { useAuth } from "@/app/components/AuthProvider";
 
 export default function DashboardPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, profile, loading: authLoading } = useAuth();
     const [stats, setStats] = useState<any[]>([]);
     const [attentionItems, setAttentionItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,7 +48,19 @@ export default function DashboardPage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Overview</h1>
+                    <div className="flex items-center gap-3 mb-1">
+                        <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Overview</h1>
+                        {profile?.plan && (
+                            <span className={clsx(
+                                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                profile.plan === 'pro' ? "bg-brand-primary/10 text-brand-primary border-brand-primary/20" :
+                                profile.plan === 'lifetime' ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                "bg-slate-100 text-slate-500 border-slate-200"
+                            )}>
+                                {profile.plan}
+                            </span>
+                        )}
+                    </div>
                     <p className="text-gray-500 dark:text-gray-400 font-bold">Welcome back! Here's what's happening today.</p>
                 </div>
                 <div className="flex items-center gap-3">
