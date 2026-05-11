@@ -1,7 +1,7 @@
 import { db } from "./firebase";
 import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc } from "firebase/firestore";
 import { auth } from "./firebase";
-import { AttentionItem, Contact, Project } from "./types";
+import { AttentionItem, Contact, Project, Invoice } from "./types";
 
 export async function getDashboardStats() {
     const user = auth.currentUser;
@@ -33,45 +33,46 @@ export async function getNeedsAttentionItems() {
 
     // 1. Overdue Invoices
     const now = new Date();
-    const overdueInvoices = await getDocs(query(
+    const allInvoices = await getDocs(query(
         collection(db, "invoices"),
-        where("ownerId", "==", user.uid),
-        where("status", "==", "sent"),
-        where("dueDate", "<", now.toISOString())
+        where("ownerId", "==", user.uid)
     ));
 
-    overdueInvoices.forEach(doc => {
-        items.push({
-            id: doc.id,
-            type: 'invoice',
-            title: `Invoice #${doc.id.slice(0, 5)} Overdue`,
-            reason: `Was due on ${new Date(doc.data().dueDate).toLocaleDateString()}`,
-            severity: 'high',
-            link: `/dashboard/invoices/${doc.id}`
-        });
+    allInvoices.forEach(doc => {
+        const data = doc.data();
+        if (data.status === 'sent' && data.dueDate < now.toISOString()) {
+            items.push({
+                id: doc.id,
+                type: 'invoice',
+                title: `Invoice #${doc.id.slice(0, 5)} Overdue`,
+                reason: `Was due on ${new Date(data.dueDate).toLocaleDateString()}`,
+                severity: 'high',
+                link: `/dashboard/invoices/${doc.id}`
+            });
+        }
     });
 
     // 2. Upcoming Project Deadlines (next 3 days)
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(now.getDate() + 3);
     
-    const upcomingProjects = await getDocs(query(
+    const allProjects = await getDocs(query(
         collection(db, "projects"),
-        where("ownerId", "==", user.uid),
-        where("status", "==", "in-progress"),
-        where("dueDate", ">=", now.toISOString()),
-        where("dueDate", "<=", threeDaysFromNow.toISOString())
+        where("ownerId", "==", user.uid)
     ));
 
-    upcomingProjects.forEach(doc => {
-        items.push({
-            id: doc.id,
-            type: 'project',
-            title: `Deadline Approaching: ${doc.data().title}`,
-            reason: `Due in ${Math.ceil((new Date(doc.data().dueDate).getTime() - now.getTime()) / (1000 * 3600 * 24))} days`,
-            severity: 'medium',
-            link: `/dashboard/projects/${doc.id}`
-        });
+    allProjects.forEach(doc => {
+        const data = doc.data();
+        if (data.status === 'in-progress' && data.dueDate >= now.toISOString() && data.dueDate <= threeDaysFromNow.toISOString()) {
+            items.push({
+                id: doc.id,
+                type: 'project',
+                title: `Deadline Approaching: ${data.title}`,
+                reason: `Due in ${Math.ceil((new Date(data.dueDate).getTime() - now.getTime()) / (1000 * 3600 * 24))} days`,
+                severity: 'medium',
+                link: `/dashboard/projects/${doc.id}`
+            });
+        }
     });
 
     return items;
@@ -177,6 +178,63 @@ export async function saveProject(projectData: Partial<Project>) {
         }
     } catch (error) {
         console.error("Error saving project:", error);
+        throw error;
+    }
+}
+export async function getInvoices() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "invoices"),
+            where("ownerId", "==", user.uid)
+        );
+        const snap = await getDocs(q);
+        const invoices = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice));
+
+        const contactsMap: Record<string, string> = {};
+        const contactsSnap = await getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid)));
+        contactsSnap.forEach(doc => {
+            contactsMap[doc.id] = doc.data().name;
+        });
+
+        return invoices.map(inv => ({
+            ...inv,
+            contactName: contactsMap[inv.contactId] || "Unknown Client"
+        }));
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        return [];
+    }
+}
+
+export async function saveInvoice(invoiceData: Partial<Invoice>) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const data = {
+            ...invoiceData,
+            ownerId: user.uid,
+            updatedAt: new Date().toISOString()
+        };
+
+        if (invoiceData.id) {
+            const ref = fsDoc(db, "invoices", invoiceData.id);
+            await updateDoc(ref, data);
+            return invoiceData.id;
+        } else {
+            const ref = collection(db, "invoices");
+            const res = await addDoc(ref, {
+                ...data,
+                createdAt: new Date().toISOString(),
+                status: data.status || 'draft'
+            });
+            return res.id;
+        }
+    } catch (error) {
+        console.error("Error saving invoice:", error);
         throw error;
     }
 }
