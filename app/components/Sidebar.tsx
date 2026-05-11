@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { FiHome, FiUsers, FiBriefcase, FiFileText, FiDollarSign, FiPieChart, FiSettings, FiMenu, FiX } from "react-icons/fi";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "./AuthProvider";
+import { toast } from "react-hot-toast";
 
 const navItems = [
     { label: "Overview", href: "/dashboard", icon: <FiHome /> },
@@ -20,6 +22,31 @@ const navItems = [
 export default function Sidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const { profile, user } = useAuth();
+
+    const handleUpgrade = async () => {
+        if (!user) return;
+        const toastId = toast.loading("Preparing upgrade...");
+        try {
+            const res = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    plan: "pro",
+                    email: user.email,
+                    userId: user.uid
+                }),
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error(data.error || "Failed to start checkout", { id: toastId });
+            }
+        } catch (e) {
+            toast.error("Something went wrong", { id: toastId });
+        }
+    };
 
     const NavContent = () => (
         <>
@@ -47,7 +74,19 @@ export default function Sidebar() {
                 })}
             </div>
 
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="p-4 space-y-4 border-t border-gray-100 dark:border-gray-800">
+                {profile?.plan === 'free' && (
+                    <div className="bg-gradient-to-br from-brand-primary/10 to-purple-500/10 p-4 rounded-2xl border border-brand-primary/20 mb-2">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white mb-1">Upgrade to Pro</h4>
+                        <p className="text-[10px] font-bold text-gray-500 mb-4 tracking-tight">Unlock AI features and unlimited projects.</p>
+                        <button 
+                            onClick={handleUpgrade}
+                            className="w-full py-2 bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all"
+                        >
+                            Upgrade Now
+                        </button>
+                    </div>
+                )}
                 <Link
                     href="/dashboard/settings"
                     onClick={() => setIsOpen(false)}

@@ -10,6 +10,12 @@ export async function POST(req: Request) {
       lifetime: "price_LIFETIME_PLAN_ID", // Replace with actual Stripe price ID
     };
 
+    if (prices[plan].includes("_PLAN_ID")) {
+      return NextResponse.json({ 
+        error: `Stripe Price ID for '${plan}' is not configured. Please add your real Price IDs to app/api/stripe/checkout/route.ts` 
+      }, { status: 400 });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -19,8 +25,8 @@ export async function POST(req: Request) {
         },
       ],
       mode: plan === "lifetime" ? "payment" : "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/cancel`,
       customer_email: email,
       metadata: {
         userId,

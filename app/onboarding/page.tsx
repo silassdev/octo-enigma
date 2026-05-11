@@ -78,6 +78,7 @@ export default function OnboardingPage() {
             toast.success("Welcome aboard! Your profile is ready.");
             
             if (formData.plan !== 'free') {
+                toast.loading("Preparing checkout...", { id: "stripe-loading" });
                 // Redirect to Stripe Checkout
                 const res = await fetch("/api/stripe/checkout", {
                     method: "POST",
@@ -88,11 +89,24 @@ export default function OnboardingPage() {
                         userId: user.uid
                     }),
                 });
-                const { url } = await res.json();
-                if (url) {
-                    window.location.href = url;
+                
+                const data = await res.json();
+                
+                if (data.error) {
+                    toast.error(data.error, { id: "stripe-loading" });
+                    setLoading(false);
                     return;
                 }
+
+                if (data.url) {
+                    toast.dismiss("stripe-loading");
+                    window.location.href = data.url;
+                    return;
+                }
+                
+                toast.error("Failed to generate checkout link.", { id: "stripe-loading" });
+                setLoading(false);
+                return;
             }
 
             router.push("/dashboard");
