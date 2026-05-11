@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { notifyAdminOfNewContact } from '@/lib/email';
 
 export async function POST(req: Request) {
     try {
@@ -10,16 +11,21 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
         }
 
-        // Store the contact request in Firestore
-        await adminDb.collection("contact_requests").add({
+        const contactData = {
             name,
             email,
             subject,
             message,
             userId: userId || "anonymous",
             createdAt: new Date().toISOString(),
-            status: "new"
-        });
+            status: "open"
+        };
+
+        // Store the contact request in Firestore
+        await adminDb.collection("contact_requests").add(contactData);
+        
+        // Trigger automated admin notification
+        await notifyAdminOfNewContact(contactData);
 
         return NextResponse.json({ success: true, message: "Message sent successfully" });
     } catch (error: any) {
