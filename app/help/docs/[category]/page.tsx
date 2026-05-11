@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { 
@@ -16,7 +16,11 @@ import {
     FiSettings,
     FiTerminal,
     FiDatabase,
-    FiTrendingUp
+    FiTrendingUp,
+    FiSmile,
+    FiFrown,
+    FiMail,
+    FiMessageSquare
 } from "react-icons/fi";
 import { clsx } from "clsx";
 
@@ -120,12 +124,13 @@ export default function DocPage() {
     const params = useParams();
     const category = params?.category as string;
     const content = docContent[category];
+    const [feedback, setFeedback] = useState<null | 'yes' | 'no'>(null);
 
     if (!content) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#050505]">
                 <div className="text-center">
-                    <h1 className="text-4xl font-black mb-6">Article Not Found</h1>
+                    <h1 className="text-4xl font-black mb-6 text-slate-900 dark:text-white">Article Not Found</h1>
                     <Link href="/help" className="text-brand-primary font-bold hover:underline">Back to Help Center</Link>
                 </div>
             </div>
@@ -156,7 +161,7 @@ export default function DocPage() {
                     <div className="inline-flex items-center gap-3 p-4 rounded-2xl bg-brand-primary/5 text-brand-primary text-3xl mb-8">
                         {content.icon}
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter">{content.title}</h1>
+                    <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-tight">{content.title}</h1>
                     <p className="text-xl text-slate-400 font-bold leading-relaxed">{content.description}</p>
                 </motion.div>
 
@@ -173,7 +178,7 @@ export default function DocPage() {
                             <div className="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-400">
                                 {section.icon || <FiCheckCircle />}
                             </div>
-                            <h2 className="text-2xl font-black mb-4 tracking-tight">{section.title}</h2>
+                            <h2 className="text-2xl font-black mb-4 tracking-tight leading-tight">{section.title}</h2>
                             <p className="text-lg text-slate-500 dark:text-gray-400 font-bold leading-relaxed mb-6">
                                 {section.content}
                             </p>
@@ -181,12 +186,74 @@ export default function DocPage() {
                     ))}
                 </div>
 
-                <div className="mt-32 p-12 rounded-[3rem] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 text-center">
-                    <h3 className="text-xl font-black mb-4">Did this help?</h3>
-                    <div className="flex justify-center gap-4">
-                        <button className="px-8 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 text-sm font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Yes, thanks!</button>
-                        <button className="px-8 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 text-sm font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Not really</button>
-                    </div>
+                <div className="mt-32 p-12 rounded-[3rem] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 overflow-hidden relative">
+                    <AnimatePresence mode="wait">
+                        {feedback === null ? (
+                            <motion.div 
+                                key="initial"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="text-center"
+                            >
+                                <h3 className="text-2xl font-black mb-8 tracking-tight">Did this help?</h3>
+                                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                    <button 
+                                        onClick={() => setFeedback('yes')}
+                                        className="px-10 py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 text-xs font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <FiSmile className="text-lg" /> Yes, thanks!
+                                    </button>
+                                    <button 
+                                        onClick={() => setFeedback('no')}
+                                        className="px-10 py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 text-xs font-black uppercase tracking-widest hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <FiFrown className="text-lg" /> Not really
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ) : feedback === 'yes' ? (
+                            <motion.div 
+                                key="positive"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="text-center py-4"
+                            >
+                                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl mx-auto mb-6">
+                                    <FiSmile />
+                                </div>
+                                <h3 className="text-2xl font-black mb-2 tracking-tight">Thanks for your feedback!</h3>
+                                <p className="text-slate-400 font-bold">We're glad we could help orchestration your workflow.</p>
+                            </motion.div>
+                        ) : (
+                            <motion.div 
+                                key="negative"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="text-center py-4"
+                            >
+                                <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-3xl mx-auto mb-6">
+                                    <FiFrown />
+                                </div>
+                                <h3 className="text-2xl font-black mb-4 tracking-tight">We're sorry to hear that.</h3>
+                                <p className="text-slate-400 font-bold mb-8 max-w-md mx-auto">Would you like to connect with our support engineering team for a personalized resolution?</p>
+                                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                    <Link 
+                                        href="/contact"
+                                        className="px-8 py-3 rounded-xl bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-dark transition-all"
+                                    >
+                                        <FiMessageSquare /> Use Contact Page
+                                    </Link>
+                                    <a 
+                                        href="mailto:admin@microcrm.io"
+                                        className="px-8 py-3 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all"
+                                    >
+                                        <FiMail /> Send Direct Email
+                                    </a>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
 
