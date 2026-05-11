@@ -14,12 +14,13 @@ import {
     FiArrowUpRight,
     FiLayout,
     FiSettings,
-    FiSave
+    FiSave,
+    FiActivity
 } from "react-icons/fi";
-import { getUserProfile, updateUserProfile } from "@/lib/actions";
+import { getUserProfile, updateUserProfile, getUserActivity } from "@/lib/actions";
 import { useRouter, useParams } from "next/navigation";
 import { clsx } from "clsx";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 
 export default function UserDetailPage() {
@@ -28,20 +29,26 @@ export default function UserDetailPage() {
     const uid = params.id as string;
     
     const [profile, setProfile] = useState<any>(null);
+    const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [editData, setEditData] = useState<any>({});
+    const [showLogs, setShowLogs] = useState(false);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            const data = await getUserProfile(uid);
-            if (data) {
-                setProfile(data);
-                setEditData(data);
+        const fetchData = async () => {
+            const [pData, aData] = await Promise.all([
+                getUserProfile(uid),
+                getUserActivity(uid)
+            ]);
+            if (pData) {
+                setProfile(pData);
+                setEditData(pData);
             }
+            setActivities(aData);
             setLoading(false);
         };
-        fetchProfile();
+        fetchData();
     }, [uid]);
 
     const handleUpdate = async () => {
@@ -54,6 +61,15 @@ export default function UserDetailPage() {
             toast.error("Failed to update profile");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const getActivityIcon = (type: string) => {
+        switch(type) {
+            case 'project': return <FiBriefcase />;
+            case 'task': return <FiCheck />;
+            case 'invoice': return <FiDollarSign />;
+            default: return <FiActivity />;
         }
     };
 
@@ -125,8 +141,8 @@ export default function UserDetailPage() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Display Name</label>
                                 <input 
                                     type="text" 
-                                    value={editData.name || ""}
-                                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                                    value={editData.name || editData.displayName || ""}
+                                    onChange={(e) => setEditData({...editData, name: e.target.value, displayName: e.target.value})}
                                     className="w-full px-6 py-4 rounded-2xl bg-gray-50 dark:bg-slate-950 border-none ring-1 ring-gray-100 dark:ring-gray-800 text-sm font-bold focus:ring-2 focus:ring-brand-primary transition-all"
                                 />
                             </div>
@@ -170,14 +186,13 @@ export default function UserDetailPage() {
                                 </button>
                             ))}
                         </div>
-                        <p className="mt-8 text-gray-400 text-xs font-bold text-center italic">Changes take effect immediately upon saving.</p>
                     </div>
                 </div>
 
-                {/* Account Insights */}
+                {/* Account Insights & Activity */}
                 <div className="lg:col-span-5 space-y-10">
                     <div className="bg-gray-50 dark:bg-slate-900 p-10 rounded-[3rem] border border-gray-100 dark:border-gray-800">
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Metadata</h3>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Account Metadata</h3>
                         <div className="space-y-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -207,19 +222,60 @@ export default function UserDetailPage() {
                         </div>
                     </div>
 
-                    <div className="bg-brand-primary/5 p-10 rounded-[3rem] border border-brand-primary/10 flex flex-col justify-between h-full">
-                        <div>
-                            <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center text-xl shadow-lg mb-6">
-                                <FiLayout />
+                    <div className="bg-white dark:bg-slate-900 p-10 rounded-[3rem] border border-gray-100 dark:border-gray-800 flex flex-col min-h-[400px]">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-lg shadow-brand-primary/20">
+                                    <FiActivity />
+                                </div>
+                                <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Recent Activity</h4>
                             </div>
-                            <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 tracking-tight line-clamp-1 truncate">Platform Usage Summary</h4>
-                            <p className="text-xs font-bold text-gray-500 leading-relaxed italic">
-                                Use the global dashboards to see aggregated project and revenue data for this user. Specialized user-level metrics are coming in V2.
-                            </p>
+                            <button 
+                                onClick={() => setShowLogs(!showLogs)}
+                                className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-primary hover:text-brand-dark transition-colors"
+                            >
+                                {showLogs ? 'Hide Details' : 'View Full Logs'}
+                            </button>
                         </div>
-                        <button className="mt-8 w-full py-4 rounded-2xl bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-[10px] font-black uppercase tracking-widest border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all">
-                            View Activity Logs
-                        </button>
+
+                        <div className="relative flex-1">
+                            <div className="absolute inset-0 overflow-y-auto pr-2 space-y-6 custom-scrollbar">
+                                {activities.length > 0 ? (
+                                    activities.map((act, i) => (
+                                        <div key={act.id} className="flex gap-4 group">
+                                            <div className="flex flex-col items-center">
+                                                <div className={clsx(
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center text-xs shadow-sm transition-all",
+                                                    act.type === 'invoice' ? 'bg-emerald-50 text-emerald-500' :
+                                                    act.type === 'project' ? 'bg-blue-50 text-blue-500' :
+                                                    'bg-gray-50 text-gray-500'
+                                                )}>
+                                                    {getActivityIcon(act.type)}
+                                                </div>
+                                                {i < activities.length - 1 && <div className="w-0.5 h-full bg-gray-100 dark:bg-slate-800 my-2" />}
+                                            </div>
+                                            <div className="pb-4 border-b border-gray-50/50 dark:border-slate-800/50 w-full">
+                                                <div className="flex justify-between items-start mb-0.5">
+                                                    <p className="text-xs font-black text-slate-900 dark:text-white group-hover:text-brand-primary transition-colors">{act.title}</p>
+                                                    <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest">{new Date(act.timestamp).toLocaleDateString()}</p>
+                                                </div>
+                                                <p className="text-[10px] font-bold text-gray-400">{act.description}</p>
+                                                {showLogs && (
+                                                    <div className="mt-2 text-[9px] font-mono text-gray-300 bg-gray-50 dark:bg-slate-950 p-2 rounded-lg border border-gray-100 dark:border-slate-800">
+                                                        STATUS: {act.status} | ID: {act.id.slice(0, 8)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                                        <FiActivity className="text-4xl mb-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">No recent activity detected</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

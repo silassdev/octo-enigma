@@ -736,3 +736,56 @@ export async function updateSystemSettings(data: any) {
         throw error;
     }
 }
+
+export async function getUserActivity(uid: string) {
+    try {
+        const [projectsSnap, tasksSnap, invoicesSnap] = await Promise.all([
+            getDocs(query(collection(db, "projects"), where("ownerId", "==", uid))),
+            getDocs(query(collection(db, "tasks"), where("ownerId", "==", uid))),
+            getDocs(query(collection(db, "invoices"), where("ownerId", "==", uid)))
+        ]);
+
+        const activities: any[] = [];
+
+        projectsSnap.forEach(doc => {
+            const data = doc.data();
+            activities.push({
+                id: doc.id,
+                type: 'project',
+                title: data.name,
+                description: 'Project updated or created',
+                timestamp: data.updatedAt || data.createdAt,
+                status: data.status
+            });
+        });
+
+        tasksSnap.forEach(doc => {
+            const data = doc.data();
+            activities.push({
+                id: doc.id,
+                type: 'task',
+                title: data.title,
+                description: data.completed ? 'Task completed' : 'Task updated',
+                timestamp: data.updatedAt || data.createdAt,
+                status: data.completed ? 'completed' : 'pending'
+            });
+        });
+
+        invoicesSnap.forEach(doc => {
+            const data = doc.data();
+            activities.push({
+                id: doc.id,
+                type: 'invoice',
+                title: `Invoice #${doc.id.slice(0, 5)}`,
+                description: `Invoice set to ${data.status}`,
+                timestamp: data.updatedAt || data.createdAt,
+                status: data.status
+            });
+        });
+
+        return activities.sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 15);
+    } catch (error) {
+        console.error("Error fetching user activity:", error);
+        return [];
+    }
+}
