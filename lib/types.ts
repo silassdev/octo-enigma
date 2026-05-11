@@ -32,20 +32,20 @@ export interface Project {
     description?: string;
     status: 'planning' | 'in-progress' | 'completed' | 'on-hold';
     budget?: number;
-    dueDate?: any;
+    deadline?: any;
+    progress?: number;
     createdAt: any;
+    updatedAt: string;
 }
 
 export interface Task {
     id: string;
-    ownerId: string;
-    projectId: string;
-    title: string;
-    description?: string;
-    dueDate?: any;
+    label: string;
+    time: string; // "10:30 AM" or "Tomorrow"
+    type: 'high' | 'medium' | 'low';
     completed: boolean;
-    priority: 'low' | 'medium' | 'high';
-    createdAt: any;
+    ownerId: string;
+    createdAt: string;
 }
 
 export interface Invoice {
@@ -84,14 +84,15 @@ export interface Expense {
     updatedAt: string;
 }
 
-export interface Task {
+export interface Ticket {
     id: string;
-    label: string;
-    time: string; // "10:30 AM" or "Tomorrow"
-    type: 'high' | 'medium' | 'low';
-    completed: boolean;
     ownerId: string;
+    subject: string;
+    description: string;
+    status: 'open' | 'in-progress' | 'resolved' | 'closed';
+    priority: 'low' | 'medium' | 'high';
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface AttentionItem {

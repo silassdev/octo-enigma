@@ -23,6 +23,7 @@ const adminNavItems = [
     { label: "System Overview", href: "/dashboard", icon: <FiHome /> },
     { label: "User Management", href: "/dashboard/admin/users", icon: <FiUsers /> },
     { label: "Global Revenue", href: "/dashboard/admin/revenue", icon: <FiDollarSign /> },
+    { label: "Support Tickets", href: "/dashboard/admin/tickets", icon: <FiFileText /> },
     { label: "App Settings", href: "/dashboard/admin/settings", icon: <FiSettings /> },
 ];
 
@@ -32,7 +33,11 @@ export default function Sidebar() {
     const { profile, user } = useAuth();
 
     const isAdmin = profile?.role === 'admin';
-    const navItems = isAdmin ? adminNavItems : userNavItems;
+    const isPro = profile?.plan === 'pro' || profile?.plan === 'lifetime';
+    
+    const navItems = isAdmin 
+        ? adminNavItems 
+        : (isPro ? [...userNavItems, { label: "Support Tickets", href: "/dashboard/support", icon: <FiFileText /> }] : userNavItems);
 
     const handleUpgrade = async () => {
         if (!user) return;

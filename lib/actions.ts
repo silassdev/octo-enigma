@@ -1,7 +1,7 @@
 import { db } from "./firebase";
 import { collection, query, where, getDocs, orderBy, limit, Timestamp, addDoc, doc as fsDoc, updateDoc } from "firebase/firestore";
 import { auth } from "./firebase";
-import { AttentionItem, Contact, Project, Invoice } from "./types";
+import { AttentionItem, Contact, Project, Invoice, Expense, Task, Ticket } from "./types";
 
 export async function getDashboardStats() {
     const user = auth.currentUser;
@@ -391,7 +391,6 @@ export async function getRecentProjects(count: number = 3) {
         }));
     } catch (error) {
         console.error("Error fetching recent projects:", error);
-        const snap = await getDocs(query(collection(db, "projects"), where("ownerId", "==", user.uid)));
         const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
         return all.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')).slice(0, count);
     }
@@ -494,5 +493,118 @@ export async function getAdminStats() {
     } catch (error) {
         console.error("Error fetching admin stats:", error);
         return null;
+    }
+}
+
+export async function getAllUsers() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const snap = await getDocs(collection(db, "profiles"));
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+    } catch (error) {
+        console.error("Error fetching all users:", error);
+        return [];
+    }
+}
+
+export async function getUserProfile(uid: string) {
+    try {
+        const res = await getDocs(query(collection(db, "profiles"), where("ownerId", "==", uid)));
+        if (res.empty) return null;
+        return { id: res.docs[0].id, ...res.docs[0].data() } as any;
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+    }
+}
+
+export async function updateUserProfile(profileId: string, data: any) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const ref = fsDoc(db, "profiles", profileId);
+        await updateDoc(ref, { 
+            ...data,
+            updatedAt: new Date().toISOString()
+        });
+        return true;
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+    }
+}
+
+export async function getTickets() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(
+            collection(db, "tickets"),
+            where("ownerId", "==", user.uid),
+            orderBy("createdAt", "desc")
+        );
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ticket));
+    } catch (error) {
+        console.error("Error fetching tickets:", error);
+        return [];
+    }
+}
+
+export async function saveTicket(ticketData: Partial<Ticket>) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Unauthorized");
+
+    try {
+        const data = {
+            ...ticketData,
+            ownerId: user.uid,
+            status: ticketData.status || 'open',
+            priority: ticketData.priority || 'medium',
+            createdAt: ticketData.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        if (ticketData.id) {
+            const ref = fsDoc(db, "tickets", ticketData.id);
+            await updateDoc(ref, data);
+            return ticketData.id;
+        } else {
+            const ref = collection(db, "tickets");
+            const res = await addDoc(ref, data);
+            return res.id;
+        }
+    } catch (error) {
+        console.error("Error saving ticket:", error);
+        throw error;
+    }
+}
+
+export async function getAdminTickets() {
+    const user = auth.currentUser;
+    if (!user) return [];
+
+    try {
+        const q = query(collection(db, "tickets"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ticket));
+    } catch (error) {
+        console.error("Error fetching admin tickets:", error);
+        return [];
+    }
+}
+
+export async function updateTicketStatus(ticketId: string, status: Ticket['status']) {
+    try {
+        const ref = fsDoc(db, "tickets", ticketId);
+        await updateDoc(ref, { status, updatedAt: new Date().toISOString() });
+        return true;
+    } catch (error) {
+        console.error("Error updating ticket status:", error);
+        throw error;
     }
 }
