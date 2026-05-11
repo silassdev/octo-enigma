@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const userId = session.metadata?.userId;
     const plan = session.metadata?.plan;
 
-    if (userId) {
+    if (userId && adminDb) {
       await adminDb.collection("users").doc(userId).update({
         plan: plan,
         subscriptionStatus: "active",
