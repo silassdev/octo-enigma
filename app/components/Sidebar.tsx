@@ -115,7 +115,7 @@ export default function Sidebar() {
             </button>
 
             {/* Desktop Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col z-40 pt-20">
+            <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col z-40 pt-20 no-print">
                 <NavContent />
             </aside>
 
@@ -128,13 +128,13 @@ export default function Sidebar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsOpen(false)}
-                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] md:hidden"
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] md:hidden no-print"
                         />
                         <motion.aside 
                             initial={{ x: -280 }}
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
-                            className="fixed left-0 top-0 h-screen w-72 bg-white dark:bg-slate-950 z-50 flex flex-col md:hidden pt-8"
+                            className="fixed left-0 top-0 h-screen w-72 bg-white dark:bg-slate-950 z-50 flex flex-col md:hidden pt-8 no-print"
                         >
                             <div className="px-6 mb-8">
                                 <h2 className="text-2xl font-black text-brand-primary">MicroCRM<span className="text-slate-900 dark:text-white">.</span></h2>

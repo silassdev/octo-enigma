@@ -7,10 +7,12 @@ import { Invoice } from "@/lib/types";
 import { useParams, useRouter } from "next/navigation";
 import InvoiceStatusBadge from "@/app/components/InvoiceStatusBadge";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/app/components/AuthProvider";
 
 export default function InvoiceDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
+    const { profile } = useAuth();
     const [invoice, setInvoice] = useState<(Invoice & { contactName?: string }) | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -55,7 +57,35 @@ export default function InvoiceDetailsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-20">
+        <div className="max-w-4xl mx-auto space-y-8 pb-20 print:m-0 print:p-0 print:max-w-none relative overflow-hidden">
+            <style jsx global>{`
+                @media print {
+                    /* Absolute hide for UI/Layout elements */
+                    aside, nav, .no-print, [role="complementary"], .sidebar-container { display: none !important; }
+                    
+                    /* Isolation for the body and main container */
+                    body, html { background: white !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+                    body * { visibility: hidden !important; }
+                    
+                    .invoice-print-container, .invoice-print-container * { 
+                        visibility: visible !important; 
+                    }
+                    
+                    .invoice-print-container { 
+                        position: absolute !important; 
+                        left: 0 !important; 
+                        top: 0 !important; 
+                        width: 100% !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important;
+                        visibility: visible !important;
+                    }
+
+                    main { margin: 0 !important; padding: 0 !important; transform: none !important; position: relative !important; }
+                    .max-w-7xl { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+                }
+            `}</style>
+
             {/* Action Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 no-print">
                 <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 font-bold hover:text-slate-900 transition-colors">
@@ -77,9 +107,18 @@ export default function InvoiceDetailsPage() {
             </div>
 
             {/* Invoice Paper */}
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-gray-50 dark:border-gray-800 overflow-hidden print:shadow-none print:border-none">
+            <div className="invoice-print-container invoice-paper bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-gray-50 dark:border-gray-800 overflow-hidden print:rounded-none relative">
+                {/* Watermark for Free Tier */}
+                {profile?.plan === 'free' && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] overflow-hidden select-none">
+                        <p className="text-[15rem] font-black uppercase tracking-widest -rotate-45 whitespace-nowrap">
+                            FREE TIER • MICROCRM
+                        </p>
+                    </div>
+                )}
+
                 {/* Invoice Header/Banner */}
-                <div className="p-12 bg-slate-900 dark:bg-slate-800 text-white flex justify-between items-start">
+                <div className="p-12 bg-slate-900 dark:bg-slate-800 text-white flex justify-between items-start relative z-10">
                     <div>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Invoice Number</h2>
                         <h1 className="text-3xl font-black tracking-tighter">#{invoice.id.slice(0, 8).toUpperCase()}</h1>
@@ -91,15 +130,15 @@ export default function InvoiceDetailsPage() {
                     </div>
                 </div>
 
-                <div className="p-16 space-y-16">
+                <div className="p-16 space-y-16 relative z-10">
                     {/* Addresses */}
                     <div className="grid grid-cols-2 gap-20">
                         <div className="space-y-4">
                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">From</h3>
                             <div className="space-y-1">
-                                <p className="text-xl font-black text-slate-900 dark:text-white">Your Business Name</p>
-                                <p className="text-sm font-bold text-gray-500">Professional Freelancer</p>
-                                <p className="text-sm font-bold text-gray-500">yourname@example.com</p>
+                                <p className="text-xl font-black text-slate-900 dark:text-white">{profile?.displayName || "Your Business"}</p>
+                                <p className="text-sm font-bold text-gray-500">Professional {profile?.plan || 'free'} member</p>
+                                <p className="text-sm font-bold text-gray-500">{profile?.email}</p>
                             </div>
                         </div>
                         <div className="space-y-4">
@@ -123,10 +162,10 @@ export default function InvoiceDetailsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                                {invoice.items?.map((item, index) => (
+                                {invoice.items?.map((item: any, index) => (
                                     <tr key={index}>
                                         <td className="py-8">
-                                            <p className="font-black text-slate-900 dark:text-white">{item.title}</p>
+                                            <p className="font-black text-slate-900 dark:text-white">{item.description || item.title || "No description"}</p>
                                         </td>
                                         <td className="py-8 text-center font-bold text-gray-500">{item.quantity}</td>
                                         <td className="py-8 text-right font-bold text-gray-500">${item.price.toLocaleString()}</td>
@@ -161,7 +200,7 @@ export default function InvoiceDetailsPage() {
                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Terms & Conditions</h4>
                         <p className="text-sm text-gray-400 font-bold leading-relaxed max-w-2xl">
                             Please pay this invoice within {new Date(invoice.dueDate).toLocaleDateString()} to avoid late fees. 
-                            If you have any questions, please contact billing@yourbusiness.com. Thank you for your business!
+                            If you have any questions, please contact billing@{profile?.email?.split('@')[1] || 'yourbusiness.com'}. Thank you for your business!
                         </p>
                     </div>
                 </div>

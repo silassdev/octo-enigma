@@ -17,7 +17,7 @@ export default function InvoiceForm({ initialData }: { initialData?: Invoice | n
     const [invoiceData, setInvoiceData] = useState<Partial<Invoice>>({
         contactId: "",
         projectId: "",
-        items: [{ title: "", quantity: 1, price: 0, total: 0 }],
+        items: [{ description: "", quantity: 1, price: 0, total: 0 }],
         subtotal: 0,
         tax: 0,
         total: 0,
@@ -54,7 +54,7 @@ export default function InvoiceForm({ initialData }: { initialData?: Invoice | n
     const handleAddItem = () => {
         setInvoiceData({
             ...invoiceData,
-            items: [...(invoiceData.items || []), { title: "", quantity: 1, price: 0, total: 0 }]
+            items: [...(invoiceData.items || []), { description: "", quantity: 1, price: 0, total: 0 }]
         });
     };
 
@@ -216,8 +216,8 @@ export default function InvoiceForm({ initialData }: { initialData?: Invoice | n
                                         {index === 0 && <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Description</label>}
                                         <input 
                                             placeholder="Service or Product name"
-                                            value={item.title}
-                                            onChange={(e) => handleItemChange(index, 'title', e.target.value)}
+                                            value={item.description}
+                                            onChange={(e) => handleItemChange(index, 'description' as any, e.target.value)}
                                             className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-slate-800 border-none ring-1 ring-gray-100 dark:ring-gray-700 text-sm font-bold"
                                         />
                                     </div>
