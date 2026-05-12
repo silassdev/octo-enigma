@@ -9,7 +9,7 @@ import {
     sendEmailVerification,
     signOut
 } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, googleProvider } from "@/lib/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -51,11 +51,10 @@ export default function RegisterPage() {
 
     const handleGoogleRegister = async () => {
         setLoading("google");
-        const provider = new GoogleAuthProvider();
         const toastId = toast.loading("Connecting to Google...");
         
         try {
-            const result = await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, googleProvider);
             toast.loading("Creating your profile...", { id: toastId });
             
             // check if user exists in db, if not create
@@ -71,7 +70,11 @@ export default function RegisterPage() {
             await checkOnboarding(result.user.uid);
         } catch (error: any) {
             console.error("Google Register Error:", error);
-            toast.error(error.message || "Registration failed", { id: toastId });
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                toast.error("An account with this email already exists. Try signing in first.", { id: toastId });
+            } else {
+                toast.error(error.message || "Registration failed", { id: toastId });
+            }
             setLoading(null);
         }
     };

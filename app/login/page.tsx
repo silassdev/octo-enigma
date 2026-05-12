@@ -7,7 +7,7 @@ import {
     GoogleAuthProvider,
     signOut
 } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, googleProvider } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -47,14 +47,16 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = async () => {
-        setLoading("google");
-        const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, googleProvider);
             toast.success("Signed in with Google!");
             await checkOnboarding(result.user.uid);
         } catch (error: any) {
-            toast.error(error.message);
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                toast.error("An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address.");
+            } else {
+                toast.error(error.message);
+            }
             setLoading(null);
         }
     };
