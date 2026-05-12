@@ -14,6 +14,7 @@ export default function OnboardingPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1);
+    const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -21,7 +22,8 @@ export default function OnboardingPage() {
         company: "",
         phoneNumber: "",
         bio: "",
-        plan: "free" as "free" | "pro" | "lifetime",
+        bio: "",
+        plan: "free",
     });
 
     useEffect(() => {
@@ -89,7 +91,7 @@ export default function OnboardingPage() {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        plan: formData.plan,
+                        plan: formData.plan === 'pro' ? `pro_${billingCycle}` : formData.plan,
                         email: user.email,
                         userId: user.uid
                     }),
@@ -300,11 +302,28 @@ export default function OnboardingPage() {
                                     exit={{ opacity: 0, x: -20 }}
                                     className="space-y-6"
                                 >
+                                    <div className="flex justify-center items-center gap-4 mb-6">
+                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>Monthly</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+                                            className="w-16 h-8 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 relative transition-all shadow-inner border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
+                                        >
+                                            <motion.div
+                                                animate={{ x: billingCycle === 'monthly' ? 0 : 32 }}
+                                                className="w-5 h-5 rounded-full bg-brand-primary shadow-lg shadow-brand-primary/20"
+                                            />
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-xs font-black uppercase tracking-widest transition-colors ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>Yearly</span>
+                                        </div>
+                                    </div>
+
                                     <div className="grid gap-4">
                                         {[
-                                            { id: 'free', title: 'Free', price: '$0', desc: '10 active invoices, 20 contacts, 20 expenses. Watermark included.' },
-                                            { id: 'pro', title: 'Pro', price: '$16.8/yr', desc: 'Unlimited records, no watermark, support, custom templates.', recommended: true },
-                                            { id: 'lifetime', title: 'Lifetime', price: '$69.9', desc: 'For first 100 users. All Pro features forever.' },
+                                            { id: 'free', title: 'Community', price: '$0', desc: '10 active projects, basic features.', period: 'forever' },
+                                            { id: 'pro', title: 'Professional', price: billingCycle === 'yearly' ? '$1.40' : '$1.99', desc: 'Unlimited records, full telemetry, support.', recommended: true, period: billingCycle === 'yearly' ? 'per mo' : 'per mo' },
+                                            { id: 'lifetime', title: 'Infinite', price: '$69.9', desc: 'Complete lifetime access.', period: 'one-time' },
                                         ].map((plan) => (
                                             <div
                                                 key={plan.id}
@@ -316,16 +335,17 @@ export default function OnboardingPage() {
                                             >
                                                 {plan.recommended && (
                                                     <span className="absolute -top-3 right-6 px-3 py-1 bg-brand-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-lg">
-                                                        Recommended
+                                                        Most Popular
                                                     </span>
                                                 )}
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
-                                                        <h3 className="font-bold text-lg">{plan.title}</h3>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 max-w-[200px]">{plan.desc}</p>
+                                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{plan.title}</h3>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px]">{plan.desc}</p>
                                                     </div>
                                                     <div className="text-right">
                                                         <span className="text-xl font-black text-brand-primary">{plan.price}</span>
+                                                        <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">{plan.period}</div>
                                                     </div>
                                                 </div>
                                             </div>
