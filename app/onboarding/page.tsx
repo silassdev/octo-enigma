@@ -73,6 +73,7 @@ export default function OnboardingPage() {
 
             await setDoc(doc(db, "users", user.uid), {
                 ...formData,
+                plan: "free", // Force free initially, upgraded by Stripe webhook
                 email: user.email,
                 onboardingCompleted: true,
                 updatedAt: new Date().toISOString()
