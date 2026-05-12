@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FiUser, FiBriefcase, FiPhone, FiLock, FiSave, FiAlertCircle, FiCreditCard, FiArrowUpCircle, FiLoader, FiCheck } from "react-icons/fi";
 import { clsx } from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SettingsPage() {
     const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ export default function SettingsPage() {
     const [savingPass, setSavingPass] = useState(false);
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+    const [isDowngradeModalOpen, setIsDowngradeModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -230,13 +232,18 @@ export default function SettingsPage() {
                             </p>
                         </div>
                         {formData.plan !== 'free' && (
-                            <button
-                                disabled={checkoutLoading === 'free'}
-                                onClick={() => handlePlanChange('free')}
-                                className="px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-slate-800 transition-all text-sm shrink-0"
-                            >
-                                {checkoutLoading === 'free' ? <FiLoader className="animate-spin text-gray-500" /> : "Downgrade to Free"}
-                            </button>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                                <button
+                                    disabled={checkoutLoading === 'free'}
+                                    onClick={() => setIsDowngradeModalOpen(true)}
+                                    className="px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 hover:border-red-200 transition-all text-sm w-full md:w-auto"
+                                >
+                                    {checkoutLoading === 'free' ? <FiLoader className="animate-spin" /> : "Downgrade to Free"}
+                                </button>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-right max-w-[250px] leading-relaxed">
+                                    Takes effect when current plan fully expires.
+                                </p>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -365,6 +372,45 @@ export default function SettingsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Downgrade Modal */}
+            <AnimatePresence>
+                {isDowngradeModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-gray-800"
+                        >
+                            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-2xl flex items-center justify-center mb-6">
+                                <FiAlertCircle className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Confirm Downgrade</h3>
+                            <p className="text-gray-500 mb-8 leading-relaxed">
+                                Are you sure you want to downgrade? Your transition to the Free tier will only take effect after your current plan fully expires.
+                            </p>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setIsDowngradeModalOpen(false)}
+                                    className="flex-1 py-3 rounded-xl font-bold bg-gray-50 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsDowngradeModalOpen(false);
+                                        handlePlanChange('free');
+                                    }}
+                                    className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 border border-transparent"
+                                >
+                                    Proceed
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

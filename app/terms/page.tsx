@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FiChevronLeft, FiShield, FiFileText, FiShieldOff, FiInfo, FiGithub } from "react-icons/fi";
+import { FiChevronLeft, FiShield, FiFileText, FiShieldOff, FiInfo, FiAlertTriangle } from "react-icons/fi";
 
 export default function TermsPage() {
     return (
@@ -107,7 +107,10 @@ export default function TermsPage() {
                     </section>
 
                     <section className="glass rounded-3xl p-8 md:p-10 border border-white/20 backdrop-blur-xl shadow-xl">
-                        <h2 className="text-2xl font-bold mb-4">5. Limitation of Liability</h2>
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <FiAlertTriangle className="text-orange-500" />
+                            5. Limitation of Liability
+                        </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                             MicroCRM provides management tools "as is." We are not liable for any discrepancies in data or any business decisions made based on the information provided by this platform.
                         </p>

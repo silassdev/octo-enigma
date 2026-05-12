@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FiChevronLeft, FiLock, FiEye, FiDatabase, FiShare2, FiUserCheck } from "react-icons/fi";
+import { FiChevronLeft, FiLock, FiEye, FiDatabase, FiShare2, FiUserCheck, FiShield } from "react-icons/fi";
 
 export default function PrivacyPage() {
     return (
@@ -114,7 +114,10 @@ export default function PrivacyPage() {
                     </section>
 
                     <section className="glass rounded-3xl p-8 md:p-10 border border-white/20 backdrop-blur-xl shadow-xl">
-                        <h2 className="text-2xl font-bold mb-4">5. Security Measures</h2>
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <FiShield className="text-teal-500" />
+                            5. Security Measures
+                        </h2>
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                             We implement a variety of security measures to maintain the safety of your information. We use SSL encryption for all data transport and industry-standard hashing for session management. We do not store sensitive passwords; all authentication is handled via OAuth.
                         </p>
