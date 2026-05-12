@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { 
-    FiChevronLeft, 
-    FiCheck, 
-    FiZap, 
-    FiAward, 
-    FiStar, 
-    FiShield, 
-    FiCpu, 
+import {
+    FiChevronLeft,
+    FiCheck,
+    FiZap,
+    FiAward,
+    FiStar,
+    FiShield,
+    FiCpu,
     FiArrowRight,
     FiX,
     FiCheckCircle
@@ -29,10 +29,11 @@ const plans = [
         bgColor: "bg-slate-50 dark:bg-slate-800",
         features: [
             "Up to 10 Projects",
+            "Limited Invoice Creation",
             "Basic Contact Management",
             "Individual Task Tracking",
             "Public API Access",
-            "Discord Community Support"
+            "Community Support"
         ],
         cta: "Start for Free",
         highlight: false
@@ -40,8 +41,8 @@ const plans = [
     {
         id: "pro",
         name: "Professional",
-        desc: "High-performance orchestration for serious developers and small teams.",
-        price: "29",
+        desc: "High-performance orchestration for developers and small teams.",
+        price: "1.99",
         period: "per month",
         icon: <FiZap />,
         color: "text-brand-primary",
@@ -63,7 +64,7 @@ const plans = [
         id: "lifetime",
         name: "Infinite",
         desc: "One investment for eternal access. For the visionaries and early adopters.",
-        price: "199",
+        price: "69.9",
         period: "one-time",
         icon: <FiAward />,
         color: "text-amber-500",
@@ -118,7 +119,7 @@ export default function PricingPage() {
                     >
                         <FiStar className="text-amber-500" /> Transparent Tiering . Optimized for Growth
                     </motion.div>
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
@@ -127,7 +128,7 @@ export default function PricingPage() {
                         Modern Pricing <br />
                         <span className="text-brand-primary">for Modern CRM.</span>
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
@@ -139,25 +140,25 @@ export default function PricingPage() {
                 </div>
 
                 {/* Pricing Toggle (Conceptual) */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
                     className="flex items-center justify-center gap-4 mb-20 scale-110"
                 >
                     <span className={clsx("text-xs font-black uppercase tracking-widest transition-colors", billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-400')}>Monthly</span>
-                    <button 
+                    <button
                         onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
                         className="w-16 h-8 rounded-full bg-slate-100 dark:bg-slate-800 p-1.5 relative transition-all shadow-inner"
                     >
-                        <motion.div 
+                        <motion.div
                             animate={{ x: billingCycle === 'monthly' ? 0 : 32 }}
-                            className="w-5 h-5 rounded-full bg-brand-primary shadow-lg shadow-brand-primary/20" 
+                            className="w-5 h-5 rounded-full bg-brand-primary shadow-lg shadow-brand-primary/20"
                         />
                     </button>
                     <div className="flex items-center gap-2">
                         <span className={clsx("text-xs font-black uppercase tracking-widest transition-colors", billingCycle === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-400')}>Yearly</span>
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest">20% OFF</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest">SAVE $7.08</span>
                     </div>
                 </motion.div>
 
@@ -171,8 +172,8 @@ export default function PricingPage() {
                             key={plan.id}
                             className={clsx(
                                 "group relative flex flex-col p-10 rounded-[3.5rem] border transition-all duration-500 hover:-translate-y-4 shadow-2xl",
-                                plan.highlight 
-                                    ? "bg-slate-900 dark:bg-white border-brand-primary/50 text-white dark:text-slate-900 z-10" 
+                                plan.highlight
+                                    ? "bg-slate-900 dark:bg-white border-brand-primary/50 text-white dark:text-slate-900 z-10"
                                     : "bg-white dark:bg-slate-900 border-gray-50 dark:border-slate-800 text-slate-900 dark:text-white"
                             )}
                         >
@@ -208,7 +209,7 @@ export default function PricingPage() {
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-10">
-                                <span className="text-5xl font-black tracking-tighter">${(billingCycle === 'yearly' && plan.id === 'pro') ? '23' : plan.price}</span>
+                                <span className="text-5xl font-black tracking-tighter">${(billingCycle === 'yearly' && plan.id === 'pro') ? '1.40' : plan.price}</span>
                                 <span className={clsx(
                                     "text-xs font-black uppercase tracking-widest transition-colors",
                                     plan.highlight ? "text-slate-500" : "text-gray-400"
@@ -238,8 +239,8 @@ export default function PricingPage() {
 
                             <button className={clsx(
                                 "w-full py-5 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl flex items-center justify-center gap-2",
-                                plan.highlight 
-                                    ? "bg-brand-primary text-white hover:bg-white hover:text-slate-900 shadow-brand-primary/20" 
+                                plan.highlight
+                                    ? "bg-brand-primary text-white hover:bg-white hover:text-slate-900 shadow-brand-primary/20"
                                     : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-brand-primary hover:text-white"
                             )}>
                                 {plan.cta} <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -262,7 +263,7 @@ export default function PricingPage() {
                             </div>
                         ))}
                     </div>
-                    <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Trusted by 5,000+ Professional Developers</h4>
+                    <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Trusted by 5,00+ Professional Developers</h4>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Join the highest tier of professional orchestration.</p>
                 </motion.div>
             </div>

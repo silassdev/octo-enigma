@@ -30,7 +30,7 @@ export default function OnboardingPage() {
                 router.push("/login");
             }
         }
-        
+
         const checkStatus = async () => {
             if (user) {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -70,7 +70,7 @@ export default function OnboardingPage() {
         try {
             console.log("Saving profile for user:", user.uid);
             console.log("Project ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
-            
+
             await setDoc(doc(db, "users", user.uid), {
                 ...formData,
                 email: user.email,
@@ -80,7 +80,7 @@ export default function OnboardingPage() {
 
             console.log("Profile saved successfully!");
             toast.success("Welcome aboard! Your profile is ready.");
-            
+
             if (formData.plan !== 'free') {
                 toast.loading("Preparing checkout...", { id: "stripe-loading" });
                 // Redirect to Stripe Checkout
@@ -93,9 +93,9 @@ export default function OnboardingPage() {
                         userId: user.uid
                     }),
                 });
-                
+
                 const data = await res.json();
-                
+
                 if (data.error) {
                     toast.error(data.error, { id: "stripe-loading" });
                     setLoading(false);
@@ -107,7 +107,7 @@ export default function OnboardingPage() {
                     window.location.href = data.url;
                     return;
                 }
-                
+
                 toast.error("Failed to generate checkout link.", { id: "stripe-loading" });
                 setLoading(false);
                 return;
@@ -302,8 +302,8 @@ export default function OnboardingPage() {
                                     <div className="grid gap-4">
                                         {[
                                             { id: 'free', title: 'Free', price: '$0', desc: '10 active invoices, 20 contacts, 20 expenses. Watermark included.' },
-                                            { id: 'pro', title: 'Pro', price: '$12/yr', desc: 'Unlimited records, no watermark, support, custom templates.', recommended: true },
-                                            { id: 'lifetime', title: 'Lifetime', price: '$50', desc: 'For first 100 users. All Pro features forever.' },
+                                            { id: 'pro', title: 'Pro', price: '$16.8/yr', desc: 'Unlimited records, no watermark, support, custom templates.', recommended: true },
+                                            { id: 'lifetime', title: 'Lifetime', price: '$69.9', desc: 'For first 100 users. All Pro features forever.' },
                                         ].map((plan) => (
                                             <div
                                                 key={plan.id}

@@ -3,18 +3,18 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { 
-    FiCheckCircle, 
-    FiInbox, 
-    FiTrendingUp, 
-    FiCreditCard, 
-    FiArrowRight, 
-    FiLayout, 
-    FiCpu, 
-    FiTarget, 
-    FiZap, 
-    FiGlobe, 
-    FiShield 
+import {
+    FiCheckCircle,
+    FiInbox,
+    FiTrendingUp,
+    FiCreditCard,
+    FiArrowRight,
+    FiLayout,
+    FiCpu,
+    FiTarget,
+    FiZap,
+    FiGlobe,
+    FiShield
 } from "react-icons/fi";
 import { useAuth } from "@/app/components/AuthProvider";
 import { clsx } from "clsx";
@@ -27,21 +27,21 @@ export default function Home() {
             {/* High-Fidelity Background Engine */}
             <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-gradient-to-b from-brand-primary/5 via-transparent to-transparent" />
-                <motion.div 
-                    animate={{ 
+                <motion.div
+                    animate={{
                         scale: [1, 1.1, 1],
                         opacity: [0.3, 0.4, 0.3]
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px]" 
+                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px]"
                 />
-                <motion.div 
-                    animate={{ 
+                <motion.div
+                    animate={{
                         scale: [1, 1.2, 1],
                         opacity: [0.2, 0.3, 0.2]
                     }}
                     transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" 
+                    className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"
                 />
             </div>
 
@@ -68,13 +68,13 @@ export default function Home() {
                         </h1>
 
                         <p className="text-xl md:text-3xl text-slate-400 dark:text-gray-500 mb-16 max-w-3xl mx-auto leading-tight font-bold tracking-tight">
-                            One minimalist workspace for your leads, projects, and revenue. <br className="hidden md:block" /> 
+                            One minimalist workspace for your leads, projects, and revenue. <br className="hidden md:block" />
                             Engineered for zero-friction operations.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 min-h-[90px]">
                             {!loading && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full"
@@ -114,9 +114,9 @@ export default function Home() {
             <section className="container py-32 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 auto-rows-[300px] md:auto-rows-[350px]">
-                        
+
                         {/* FEATURE 1: CRM (Large Bento) */}
-                        <motion.div 
+                        <motion.div
                             whileHover={{ y: -8 }}
                             className="md:col-span-8 md:row-span-2 rounded-[3.5rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-12 flex flex-col justify-between group overflow-hidden relative"
                         >
@@ -139,7 +139,7 @@ export default function Home() {
                         </motion.div>
 
                         {/* FEATURE 2: Invoicing (Small Bento) */}
-                        <motion.div 
+                        <motion.div
                             whileHover={{ y: -8 }}
                             className="md:col-span-4 rounded-[3.5rem] bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-10 flex flex-col justify-between group border border-white/10 dark:border-slate-200 shadow-2xl"
                         >
@@ -154,7 +154,7 @@ export default function Home() {
                         </motion.div>
 
                         {/* FEATURE 3: Expenses (Small Bento) */}
-                        <motion.div 
+                        <motion.div
                             whileHover={{ y: -8 }}
                             className="md:col-span-4 rounded-[3.5rem] bg-indigo-600 p-10 text-white flex flex-col justify-between group shadow-xl shadow-indigo-500/20"
                         >
@@ -166,7 +166,7 @@ export default function Home() {
                         </motion.div>
 
                         {/* FEATURE 4: Projects (Wide Bento) */}
-                        <motion.div 
+                        <motion.div
                             whileHover={{ y: -8 }}
                             className="md:col-span-4 md:row-span-1 rounded-[3.5rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 p-10 flex flex-col justify-between group"
                         >
@@ -198,14 +198,14 @@ export default function Home() {
             {/* CTA Bottom: Reactive Final Conversion */}
             <AnimatePresence>
                 {!user && !loading && (
-                    <motion.section 
+                    <motion.section
                         initial={{ opacity: 0, scale: 0.95 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="container py-40 text-center relative overflow-hidden px-6"
                     >
                         <div className="max-w-4xl mx-auto relative z-10 p-20 rounded-[4rem] bg-slate-900 text-white shadow-[0_50px_100px_rgba(0,0,0,0.3)]">
-                            <motion.h2 
+                            <motion.h2
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 className="text-5xl md:text-7xl font-black mb-10 tracking-tighter leading-none"
@@ -226,7 +226,7 @@ export default function Home() {
             </AnimatePresence>
 
             <footer className="container py-12 border-t border-slate-50 dark:border-white/5 text-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">© 2026 MicroCRM . All Systems Operational</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400"> MicroCRM . Freelance Suite</p>
             </footer>
         </main>
     );

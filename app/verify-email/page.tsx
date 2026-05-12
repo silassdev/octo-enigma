@@ -15,8 +15,7 @@ export default function VerifyEmailPage() {
     const [sending, setSending] = useState(false);
     const [verifying, setVerifying] = useState(false);
 
-    // We are no longer enforcing that the user MUST be signed in on this page.
-    // They are signed out immediately after registration to block access.
+    // New Users are signed out immediately after registration to regain access after verification is true.
     useEffect(() => {
         if (!loading && user?.emailVerified) {
             router.push("/onboarding");

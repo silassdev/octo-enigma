@@ -55,7 +55,7 @@ export async function getNeedsAttentionItems() {
     // 2. Upcoming Project Deadlines (next 3 days)
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(now.getDate() + 3);
-    
+
     const allProjects = await getDocs(query(
         collection(db, "projects"),
         where("ownerId", "==", user.uid)
@@ -135,7 +135,7 @@ export async function getProjects() {
         );
         const snap = await getDocs(q);
         const projects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
-        
+
         const contactsMap: Record<string, string> = {};
         const contactsSnap = await getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid)));
         contactsSnap.forEach(doc => {
@@ -254,7 +254,7 @@ export async function getExpenses() {
         // Fetch contacts and projects for mapping
         const contactsMap: Record<string, string> = {};
         const projectsMap: Record<string, string> = {};
-        
+
         const [contactsSnap, projectsSnap] = await Promise.all([
             getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid))),
             getDocs(query(collection(db, "projects"), where("ownerId", "==", user.uid)))
@@ -379,7 +379,7 @@ export async function getRecentProjects(count: number = 3) {
 
         const contactsMap: Record<string, string> = {};
         const contactIds = Array.from(new Set(projects.map(p => p.contactId).filter(Boolean)));
-        
+
         if (contactIds.length > 0) {
             const cSnap = await getDocs(query(collection(db, "contacts"), where("ownerId", "==", user.uid)));
             cSnap.forEach(doc => contactsMap[doc.id] = doc.data().name);
@@ -513,7 +513,7 @@ export async function getUserProfile(uid: string) {
         // Direct document fetch is more reliable as the doc name IS the UID
         const ref = fsDoc(db, "users", uid);
         const snap = await getDoc(ref);
-        
+
         if (snap.exists()) {
             return { id: snap.id, ...snap.data() } as any;
         }
@@ -534,7 +534,7 @@ export async function updateUserProfile(profileId: string, data: any) {
 
     try {
         const ref = fsDoc(db, "users", profileId);
-        await updateDoc(ref, { 
+        await updateDoc(ref, {
             ...data,
             updatedAt: new Date().toISOString()
         });
@@ -697,10 +697,10 @@ export async function getSystemSettings() {
     try {
         const snap = await getDocs(query(collection(db, "settings")));
         const doc = snap.docs.find(d => d.id === 'global');
-        
+
         const defaultSettings = {
             appName: "MicroCRM",
-            supportEmail: "support@microcrm.io",
+            supportEmail: "support@microcrm.xyz",
             maintenanceMode: false,
             enableRegistration: true,
             defaultPlan: "free",
@@ -726,7 +726,7 @@ export async function updateSystemSettings(data: any) {
 
     try {
         const ref = fsDoc(db, "settings", "global");
-        await setDoc(ref, { 
+        await setDoc(ref, {
             ...data,
             updatedAt: new Date().toISOString()
         }, { merge: true });
