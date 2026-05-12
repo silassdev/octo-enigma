@@ -6,15 +6,23 @@ export async function POST(req: Request) {
     const { plan, email, userId, test } = await req.json();
 
     const prices: Record<string, string> = {
-      pro: "price_PRO_PLAN_ID", 
+      pro_monthly: "price_PRO_MONTHLY_ID",
+      pro_yearly: "price_PRO_YEARLY_ID",
       lifetime: "price_LIFETIME_PLAN_ID",
     };
+
+    // Handle downgrade to free directly (bypass Stripe)
+    if (plan === 'free') {
+      return NextResponse.json({ 
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stripe/mock-success?userId=${userId}&plan=free` 
+      });
+    }
 
     // 1. Simulation Mode (for testing without real Price IDs)
     if (test || process.env.NODE_ENV === 'development' || (prices[plan] && prices[plan].includes("_PLAN_ID"))) {
       console.log(`[MOCK] Simulating checkout for ${plan} plan`);
       return NextResponse.json({ 
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/mock-success?userId=${userId}&plan=${plan}` 
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/stripe/mock-success?userId=${userId}&plan=${plan}` 
       });
     }
 

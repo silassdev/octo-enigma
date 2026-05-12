@@ -5,7 +5,9 @@ import {
     signInWithEmailAndPassword,
     signInWithPopup,
     GoogleAuthProvider,
-    signOut
+    signOut,
+    getAdditionalUserInfo,
+    deleteUser
 } from "firebase/auth";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -47,8 +49,18 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = async () => {
+        setLoading("google");
         try {
             const result = await signInWithPopup(auth, googleProvider);
+            const additionalInfo = getAdditionalUserInfo(result);
+
+            if (additionalInfo?.isNewUser) {
+                await deleteUser(result.user);
+                toast.error("Account does not exist. Please create a new account for free.");
+                setLoading(null);
+                return;
+            }
+
             toast.success("Signed in with Google!");
             await checkOnboarding(result.user.uid);
         } catch (error: any) {

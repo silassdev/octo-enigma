@@ -7,7 +7,8 @@ import {
     GoogleAuthProvider,
     updateProfile,
     sendEmailVerification,
-    signOut
+    signOut,
+    getAdditionalUserInfo
 } from "firebase/auth";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -55,6 +56,15 @@ export default function RegisterPage() {
         
         try {
             const result = await signInWithPopup(auth, googleProvider);
+            const additionalInfo = getAdditionalUserInfo(result);
+            
+            if (!additionalInfo?.isNewUser) {
+                await signOut(auth);
+                toast.error("An account with this email already exists. Please log in instead.", { id: toastId });
+                setLoading(null);
+                return;
+            }
+            
             toast.loading("Creating your profile...", { id: toastId });
             
             // check if user exists in db, if not create

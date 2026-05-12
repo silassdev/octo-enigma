@@ -6,7 +6,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { FiUser, FiBriefcase, FiPhone, FiLock, FiSave, FiAlertCircle } from "react-icons/fi";
+import { FiUser, FiBriefcase, FiPhone, FiLock, FiSave, FiAlertCircle, FiCreditCard, FiArrowUpCircle, FiLoader, FiCheck } from "react-icons/fi";
+import { clsx } from "clsx";
 
 export default function SettingsPage() {
     const { user, loading } = useAuth();
@@ -16,6 +17,7 @@ export default function SettingsPage() {
         company: "",
         phoneNumber: "",
         bio: "",
+        plan: "free",
     });
     const [passwords, setPasswords] = useState({
         current: "",
@@ -24,6 +26,8 @@ export default function SettingsPage() {
     });
     const [saving, setSaving] = useState(false);
     const [savingPass, setSavingPass] = useState(false);
+    const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+    const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -88,6 +92,44 @@ export default function SettingsPage() {
             }
         } finally {
             setSavingPass(false);
+        }
+    };
+
+    const handlePlanChange = async (planId: string) => {
+        if (!user || user.email == null) return;
+        if (formData.plan === planId) {
+             toast.error("You are already on this plan.");
+             return;
+        }
+
+        setCheckoutLoading(planId);
+        toast.loading("Preparing secure checkout...", { id: "stripe-loading" });
+
+        try {
+            const res = await fetch("/api/stripe/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    plan: planId,
+                    email: user.email,
+                    userId: user.uid
+                }),
+            });
+            const data = await res.json();
+            if (data.error) {
+                toast.error(data.error, { id: "stripe-loading" });
+                return;
+            }
+            if (data.url) {
+                toast.dismiss("stripe-loading");
+                window.location.href = data.url;
+                return;
+            }
+            toast.error("Failed to generate checkout link.", { id: "stripe-loading" });
+        } catch (error: any) {
+            toast.error(error.message, { id: "stripe-loading" });
+        } finally {
+            setCheckoutLoading(null);
         }
     };
 
@@ -161,6 +203,84 @@ export default function SettingsPage() {
                         </button>
                     </div>
                 </form>
+            </div>
+
+            {/* Billing && Plan Section */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                        <FiCreditCard /> Billing & Subscription
+                    </h2>
+                    {formData.plan !== 'free' && (
+                        <div className="px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-black uppercase tracking-widest">
+                            Active
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-6 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 mb-8">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Current Plan</p>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white capitalize flex items-center gap-2">
+                                {formData.plan?.replace('pro_', 'Professional ')?.replace('_monthly', '(Monthly)')?.replace('_yearly', '(Yearly)') || 'Free'}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {formData.plan === 'free' ? 'You are on the free tier. Upgrade to unlock more features.' : 'You have access to premium orchestration.'}
+                            </p>
+                        </div>
+                        {formData.plan !== 'free' && (
+                            <button
+                                disabled={checkoutLoading === 'free'}
+                                onClick={() => handlePlanChange('free')}
+                                className="px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-slate-800 transition-all text-sm shrink-0"
+                            >
+                                {checkoutLoading === 'free' ? <FiLoader className="animate-spin text-gray-500" /> : "Downgrade to Free"}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <h3 className="text-lg font-bold mb-4">Available Upgrade Paths</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                        { id: 'pro_monthly', title: 'Professional (Monthly)', price: '$1.99', desc: 'Unlimited records & full support billed monthly.' },
+                        { id: 'pro_yearly', title: 'Professional (Yearly)', price: '$16.80', desc: 'Save annually with all pro features.', badge: 'Save 30%' },
+                        { id: 'lifetime', title: 'Infinite', price: '$69.90', desc: 'Complete lifetime access one-time.' },
+                    ].map((plan) => (
+                        <div key={plan.id} className={clsx(
+                            "relative p-6 rounded-2xl border-2 transition-all flex flex-col shadow-sm",
+                            formData.plan === plan.id ? "border-brand-primary bg-brand-primary/5" : "border-gray-100 dark:border-gray-800 bg-white dark:bg-slate-950 hover:border-brand-primary/50"
+                        )}>
+                            {plan.badge && (
+                                <span className="absolute -top-3 right-6 px-3 py-1 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                                    {plan.badge}
+                                </span>
+                            )}
+                            <div className="flex-1 mb-6">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-bold text-slate-900 dark:text-white capitalize">{plan.title}</h4>
+                                    <span className="font-black text-brand-primary">{plan.price}</span>
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{plan.desc}</p>
+                            </div>
+                            <button
+                                disabled={checkoutLoading === plan.id || formData.plan === plan.id}
+                                onClick={() => handlePlanChange(plan.id)}
+                                className={clsx(
+                                    "w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-sm",
+                                    formData.plan === plan.id 
+                                        ? "bg-brand-primary/10 text-brand-primary cursor-auto" 
+                                        : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-brand-primary hover:text-white shadow-xl shadow-brand-primary/10 disabled:opacity-50"
+                                )}
+                            >
+                                {checkoutLoading === plan.id ? <FiLoader className="animate-spin" /> : 
+                                 formData.plan === plan.id ? <><FiCheck /> Current Plan</> : 
+                                 <><FiArrowUpCircle /> Select Plan</>}
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* Email & Security Section */}

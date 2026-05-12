@@ -20,7 +20,7 @@ import { clsx } from "clsx";
 const plans = [
     {
         id: "free",
-        name: "Community",
+        name: "Free",
         desc: "Essential CRM tooling for solo creators and open-source believers.",
         price: "0",
         period: "forever",
@@ -209,12 +209,12 @@ export default function PricingPage() {
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-10">
-                                <span className="text-5xl font-black tracking-tighter">${(billingCycle === 'yearly' && plan.id === 'pro') ? '1.40' : plan.price}</span>
+                                <span className="text-5xl font-black tracking-tighter">${(billingCycle === 'yearly' && plan.id === 'pro') ? '16.80' : plan.price}</span>
                                 <span className={clsx(
                                     "text-xs font-black uppercase tracking-widest transition-colors",
                                     plan.highlight ? "text-slate-500" : "text-gray-400"
                                 )}>
-                                    {plan.period}
+                                    {(billingCycle === 'yearly' && plan.id === 'pro') ? 'per year' : plan.period}
                                 </span>
                             </div>
 
@@ -237,14 +237,14 @@ export default function PricingPage() {
                                 ))}
                             </div>
 
-                            <button className={clsx(
+                            <Link href="/auth/register" className={clsx(
                                 "w-full py-5 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl flex items-center justify-center gap-2",
                                 plan.highlight
                                     ? "bg-brand-primary text-white hover:bg-white hover:text-slate-900 shadow-brand-primary/20"
                                     : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-brand-primary hover:text-white"
                             )}>
                                 {plan.cta} <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
-                            </button>
+                            </Link>
                         </motion.div>
                     ))}
                 </div>

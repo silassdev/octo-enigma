@@ -22,7 +22,6 @@ export default function OnboardingPage() {
         company: "",
         phoneNumber: "",
         bio: "",
-        bio: "",
         plan: "free",
     });
 
@@ -64,8 +63,19 @@ export default function OnboardingPage() {
         return false;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+
+        if (step !== 4) {
+            console.log("handleSubmit fired but step is not 4. Current step:", step);
+            if (validateStep(step)) {
+                setStep(step + 1);
+            } else {
+                toast.error("Please fill in all required fields.");
+            }
+            return;
+        }
+
         if (!user) return;
         setLoading(true);
 
@@ -195,7 +205,7 @@ export default function OnboardingPage() {
                         ))}
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-6">
                         <AnimatePresence mode="wait">
                             {step === 1 && (
                                 <motion.div
@@ -321,9 +331,9 @@ export default function OnboardingPage() {
 
                                     <div className="grid gap-4">
                                         {[
-                                            { id: 'free', title: 'Community', price: '$0', desc: '10 active projects, basic features.', period: 'forever' },
-                                            { id: 'pro', title: 'Professional', price: billingCycle === 'yearly' ? '$1.40' : '$1.99', desc: 'Unlimited records, full telemetry, support.', recommended: true, period: billingCycle === 'yearly' ? 'per mo' : 'per mo' },
-                                            { id: 'lifetime', title: 'Infinite', price: '$69.9', desc: 'Complete lifetime access.', period: 'one-time' },
+                                            { id: 'free', title: 'Free', price: '$0', desc: '10 active projects, basic features.', period: 'forever' },
+                                            { id: 'pro', title: 'Professional', price: billingCycle === 'yearly' ? '$16.80' : '$1.99', desc: 'Unlimited records, full telemetry, support.', recommended: true, period: billingCycle === 'yearly' ? 'billed annually' : 'billed monthly' },
+                                            { id: 'lifetime', title: 'Infinite', price: '$69.90', desc: 'Complete lifetime access.', period: 'one-time payment' },
                                         ].map((plan) => (
                                             <div
                                                 key={plan.id}
@@ -365,8 +375,9 @@ export default function OnboardingPage() {
                                     Back
                                 </button>
                             )}
-                            {step < 4 ? (
+                            {step < 4 && (
                                 <button
+                                    key={`continue-btn-${step}`}
                                     type="button"
                                     onClick={() => {
                                         if (validateStep(step)) {
@@ -379,9 +390,12 @@ export default function OnboardingPage() {
                                 >
                                     Continue
                                 </button>
-                            ) : (
+                            )}
+                            {step === 4 && (
                                 <button
-                                    type="submit"
+                                    key="submit-btn"
+                                    type="button"
+                                    onClick={handleSubmit}
                                     disabled={loading || !validateStep(4)}
                                     className="flex-1 px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-brand-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -389,7 +403,7 @@ export default function OnboardingPage() {
                                 </button>
                             )}
                         </div>
-                    </form>
+                    </div>
                 </motion.div>
             </div>
         </main>
