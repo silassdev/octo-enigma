@@ -41,26 +41,5 @@ Visualize your business health with revenue trends, expense reports, and profit 
 - `/android`: Native Android app for on-the-go management (Future).
 
 ---
-
-## 🛠️ Getting Started
-
-1. **Clone the repository**
-2. **Setup Firebase**: Create a project in Firebase Console and grab your config.
-3. **Environment Variables**: Create a `.env.local` in `/web` with:
-   ```env
-   NEXT_PUBLIC_FIREBASE_API_KEY=...
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-   // etc
-   ```
-4. **Install & Run**:
-   ```bash
-   cd web
-   npm install
-   npm run dev
-   ```
-
----
-
 ## 🛡️ Best Practices
 Built with **TypeScript** for type-safety, **Firebase Rules** for data security, and **Tailwind CSS** for a premium, responsive UI experience.
